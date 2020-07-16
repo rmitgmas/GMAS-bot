@@ -13,7 +13,8 @@ from discord.voice_client import VoiceClient
 from backgroundTasks import *
 
 client = discord.Client()
-token = open(r"token.txt", "r").read()
+#token = open(r"token.txt", "r").read()
+token = "NzIwOTU2OTAxOTMxODc2MzYy.XxBxUA.HHKTPjt4jraFXukYhsyYp3w5vFs"
 
 bot = commands.Bot(command_prefix="g!")
 bot.remove_command("help")
@@ -22,123 +23,9 @@ bot.remove_command("help")
 async def on_ready():
     print("My body is ready!")
     game = discord.Game("Moderating GMAS")
-    await bot.change_presence(status = discord.Status.online, activity=game)
+    activity = discord.Activity(name=f'over GMAS', type=discord.ActivityType.watching)
+    await bot.change_presence(status = discord.Status.online, activity=activity)
 
-@bot.event
-async def on_member_join(member):
-    with open("users.json", "r") as f:
-        users = json.load(f)
-
-    await update_data(users, member)
-
-    with open("users.json", "w") as f:
-        json.dump(users, f)
-
-    channel = 159265486842888192
-    #<:ayaya:592239431365165056>
-    #<:sip:669755445568733195>
-    #<:uwu:720136859270774834>
-    #<:woke:718749924010885133>
-
-    randEmoji = randint(1,7)
-    if randEmoji == 1:
-        emoji1 = "<:dab:592239094738714634>"
-    if randEmoji == 2:
-        emoji1 = "<:gasm:592239515289124874>"
-    if randEmoji == 3:
-        emoji1 = "<:stonks:722680072674345021>"
-    if randEmoji == 4:
-        emoji1 = "<:ayaya:592239431365165056>"
-    if randEmoji == 5:
-        emoji1 = "<:sip:669755445568733195>"
-    if randEmoji == 6:
-        emoji1 = "<:uwu:720136859270774834>"
-    if randEmoji == 7:
-        emoji1 = "<:woke:718749924010885133>"
-
-    name = str(member.name)
-
-    embed=discord.Embed(title="Welcome to GMAS", description="Hello "+ name)
-    embed.add_field(name="Enjoy your stay!", value="undefined", inline=False)
-    await channel.send(embed=embed)
-
-@bot.event
-async def on_message(message):
-
-    channel = message.channel
-
-    if message.author == client.user:
-        return
-
-    messageToRecord = message.content
-    messageAuthor = message.author
-
-    #outputFile = open(r"output.txt","a")
-    #outputFile.write(str(message.content) + ": sent by: " + str(message.author) + "\n")
-
-    print(message.content)
-    print(message.author)
-
-    if message.content == "Hello there":
-        await channel.send("General Kenobi")
-
-    if message.content == "Hi":
-        await channel.send("Nice to meet you")
-
-    with open("bad_words.txt") as file:
-        bad_words = [bad_word.strip().lower() for bad_word in file.readlines()]
-
-    for bad_word in bad_words:
-        if message.content.count(bad_word) > 0:
-            embed = discord.Embed(title ="You said a bad word", description="I will put you in the naughty corner")
-            await channel.send(content= None, embed = embed)
-            await message.delete()
-
-    await bot.process_commands(message)
-
-@bot.command()
-async def help(ctx):
-    embed = discord.Embed(title ="GMAS bot command list", description="Here are my commands!")
-    embed.add_field(name="sample command", value="sample text")
-    await ctx.send(content= None, embed = embed)
-
-@bot.command()
-async def profile(ctx):
-        with open("users.json", "r") as f:
-            users = json.load(f)
-        await update_data(users, ctx.author)
-        numberOfRedOrbs = get_red_orbs(users, ctx.message.author)
-        name = str(ctx.message.author)
-        embed = discord.Embed(title=name +'s profile')
-        embed.add_field(name="Number of Red Orbs", value=str(numberOfRedOrbs) + "<:redorb:729815039329959947>")
-        await ctx.send(content= None, embed = embed)
-
-@bot.command()
-async def ping(ctx):
-    ping = round(bot.latency * 1000)
-    await ctx.send(str(ping) + "ms")
-
-@bot.command()
-async def roll(ctx):
-    await ctx.send("$w")
-
-@bot.command()
-async def test(ctx, msg):
-    print(str(msg))
-    await ctx.send(str(msg))
-
-@bot.command()
-async def redOrb(ctx):
-    with open("users.json", "r") as f:
-        users = json.load(f)
-
-    await update_data(users, ctx.message.author)
-    numberOfRedOrbs = randint(500,1000)
-    await add_red_orbs(users, ctx.message.author, numberOfRedOrbs)
-    await ctx.send("You have gained {} red orbs".format(numberOfRedOrbs))
-
-    with open("users.json", "w") as f:
-        json.dump(users, f)
 
 @bot.command()
 async def kill(ctx):
@@ -148,10 +35,37 @@ async def kill(ctx):
     else:
         await ctx.send("You cannot kill me, I am Omega. You cannot kill me, I am SUBHUMAN!")
 
-class Main_Commands():
-    def __init__(self, bot):
-        self.bot = bot
+##Dealing With Cog Shit
+#Load Cog
+@bot.command(hidden=True)
+@commands.is_owner()
+async def load(ctx, extension):
+    bot.load_extension(f'cogs.{extension}')
+    await ctx.message.add_reaction('✅')
+    print(f'{extension} loaded')
 
+#Unload Cog
+@bot.command(hidden=True)
+@commands.is_owner()
+async def unload(ctx, extension):
+    bot.unload_extension(f'cogs.{extension}')
+    await ctx.message.add_reaction('✅')
+    print(f'{extension} unloaded')
+    
+#Reload Cog
+@bot.command(hidden=True)
+@commands.is_owner()
+async def reload(ctx, extension):
+    bot.unload_extension(f'cogs.{extension}')
+    bot.load_extension(f'cogs.{extension}')
+    await ctx.message.add_reaction('✅')
+    print(f'{extension} reloaded')
+
+#Preload Cogs
+for filename in os.listdir('./cogs'):
+    if filename.endswith('.py'):
+        bot.load_extension(f'cogs.{filename[:-3]}')
+        print(f'{filename} loaded')
 
 bot.run(token)
 
