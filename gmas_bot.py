@@ -13,8 +13,7 @@ from discord.voice_client import VoiceClient
 from backgroundTasks import *
 
 client = discord.Client()
-#token = open(r"token.txt", "r").read()
-token = "NzIwOTU2OTAxOTMxODc2MzYy.XxBxUA.HHKTPjt4jraFXukYhsyYp3w5vFs"
+token = open(r"token.txt", "r").read()
 
 bot = commands.Bot(command_prefix="g!")
 bot.remove_command("help")
@@ -68,4 +67,3 @@ for filename in os.listdir('./cogs'):
         print(f'{filename} loaded')
 
 bot.run(token)
-
