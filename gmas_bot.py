@@ -34,6 +34,34 @@ async def on_member_join(member):
     with open("users.json", "w") as f:
         json.dump(users, f)
 
+    channel = 159265486842888192
+    #<:ayaya:592239431365165056>
+    #<:sip:669755445568733195>
+    #<:uwu:720136859270774834>
+    #<:woke:718749924010885133>
+
+    randEmoji = randint(1,7)
+    if randEmoji == 1:
+        emoji1 = "<:dab:592239094738714634>"
+    if randEmoji == 2:
+        emoji1 = "<:gasm:592239515289124874>"
+    if randEmoji == 3:
+        emoji1 = "<:stonks:722680072674345021>"
+    if randEmoji == 4:
+        emoji1 = "<:ayaya:592239431365165056>"
+    if randEmoji == 5:
+        emoji1 = "<:sip:669755445568733195>"
+    if randEmoji == 6:
+        emoji1 = "<:uwu:720136859270774834>"
+    if randEmoji == 7:
+        emoji1 = "<:woke:718749924010885133>"
+
+    name = str(member.name)
+
+    embed=discord.Embed(title="Welcome to GMAS", description="Hello "+ name)
+    embed.add_field(name="Enjoy your stay!", value="undefined", inline=False)
+    await channel.send(embed=embed)
+
 @bot.event
 async def on_message(message):
 
@@ -64,6 +92,7 @@ async def on_message(message):
         if message.content.count(bad_word) > 0:
             embed = discord.Embed(title ="You said a bad word", description="I will put you in the naughty corner")
             await channel.send(content= None, embed = embed)
+            await message.delete()
 
     await bot.process_commands(message)
 
@@ -88,6 +117,10 @@ async def profile(ctx):
 async def ping(ctx):
     ping = round(bot.latency * 1000)
     await ctx.send(str(ping) + "ms")
+
+@bot.command()
+async def roll(ctx):
+    await ctx.send("$w")
 
 @bot.command()
 async def test(ctx, msg):
