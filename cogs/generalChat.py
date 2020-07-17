@@ -9,7 +9,7 @@ class generalChat(commands.Cog):
     def __init__(self, bot):
         self.bot=bot
 
-
+    #Message events
     @commands.Cog.listener()
     async def on_message(self, message):
 
@@ -44,6 +44,7 @@ class generalChat(commands.Cog):
 
         await self.process_commands(message)
 
+    #Set general chat
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)   
@@ -58,7 +59,7 @@ class generalChat(commands.Cog):
 
         await ctx.message.add_reaction('✅')
 
-
+    #Remove set general chat
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)   
@@ -73,13 +74,16 @@ class generalChat(commands.Cog):
 
         await ctx.message.add_reaction('✅')
 
+    #Send a welcome message to general chat
     @commands.Cog.listener()
     async def on_member_join(self, member):
         
         with open('config.json', 'r') as f:
             serverConfig = json.load(f)
+            generalChannel = serverConfig["general"]
+            rulesChannel = serverConfig["rules"]
 
-        if serverConfig["general"] is not None:
+        if generalChannel is not None:
             with open("users.json", "r") as f:
                 users = json.load(f)
 
@@ -90,16 +94,12 @@ class generalChat(commands.Cog):
 
             channel = self.bot.get_channel(serverConfig["general"])
 
-            
             with open('random.json', 'r') as f:
-                emoji1 = random.choice(json.load(f)["emote"])
+                randomised = json.load(f)
+                emoji1 = random.choice(randomised["emote"])
+                greeting = random.choice(randomised["greeting"]).replace("username", f'{member.mention}')
 
-
-            name = str(member.name)
-
-            embed=discord.Embed(title="Welcome to GMAS", description="Hello "+ name)
-            embed.add_field(name="Enjoy your stay!", value=emoji1, inline=False)
-            await channel.send(embed=embed)
+            await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!")
 
             
 def setup(bot):

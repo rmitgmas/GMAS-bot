@@ -25,16 +25,7 @@ async def on_ready():
     activity = discord.Activity(name=f'over GMAS', type=discord.ActivityType.watching)
     await bot.change_presence(status = discord.Status.online, activity=activity)
 
-
-@bot.command()
-async def kill(ctx):
-    if ctx.message.author.id == 253253450765172747:
-        await ctx.send("Terminating...")
-        exit()
-    else:
-        await ctx.send("You cannot kill me, I am Omega. You cannot kill me, I am SUBHUMAN!")
-
-##Dealing With Cog Shit
+#Dealing With Cog Shit
 #Load Cog
 @bot.command(hidden=True)
 @commands.is_owner()

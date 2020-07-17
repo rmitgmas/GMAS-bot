@@ -10,7 +10,6 @@ with open('config.json', 'r') as f:
 abbr = pytz.timezone(timezone).localize(datetime.now(), is_dst=None).tzname()
 timeFormat = f'%I:%M %p, %d/%m/%y {abbr}'
 
-
 class userinfo(commands.Cog):
     def __init__(self, bot):
         self.bot=bot
@@ -27,7 +26,7 @@ class userinfo(commands.Cog):
 
             joininfo = discord.Embed(
                 title = 'User Joined',
-                description = serverConfig["welcome"].replace("username", f'{member.mention}'),
+                description = serverConfig["join"].replace("username", f'{member.mention}'),
                 colour = discord.Colour.green()
             )
         
@@ -88,15 +87,15 @@ class userinfo(commands.Cog):
         await ctx.message.add_reaction('✅')
 
 
-    @commands.command(aliases=['sw'])
+    @commands.command(aliases=['sj'])
     @commands.guild_only()
     @commands.has_permissions(administrator=True)   
-    async def setwelcome(self, ctx, *, message):
+    async def setjoin(self, ctx, *, message):
         if message.count("username") == 1:
             with open('config.json', 'r') as f:
                 serverConfig = json.load(f)
 
-            serverConfig["welcome"] = message
+            serverConfig["join"] = message
 
             with open('config.json', 'w') as f:
                 json.dump(serverConfig, f, indent=4)
