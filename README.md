@@ -7,3 +7,5 @@ Smug Echidona#7901
 
 
 Thanks FriedRice#1686, for letting us do this.
+
+yes there is code which acts like spyware, but it's been commented out. If the Prez wants a chat log I'll uncomment it.
