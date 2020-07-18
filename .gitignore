@@ -2,3 +2,6 @@ cogs/__pycache__
 __pycache__
 .vscode
 *.pyc
+
+# Gotta keep those token from being leaked :)
+token.txt
