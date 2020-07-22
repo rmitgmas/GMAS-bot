@@ -33,7 +33,7 @@ class orbs(commands.Cog):
 
         numberOfRedOrbs = randint(500,1000)
         await add_red_orbs(users, ctx.message.author, numberOfRedOrbs)
-        await ctx.send("You have gained {} red orbs".format(numberOfRedOrbs))
+        await ctx.send("You have gained {} red orbs <:redorb:729815039329959947>.".format(numberOfRedOrbs))
 
         with open("users.json", "w") as f:
             json.dump(users, f, indent = 4)

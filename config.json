@@ -1,7 +1,7 @@
 {
     "Timezone": "Australia/Melbourne",
-    "general": null,
-    "rules": null,
+    "general": 159265486842888192,
+    "rules": 692326477848379402,
     "logChannel": null,
     "join": "Welcome, username!",
     "leave": "Goodbye, username!"

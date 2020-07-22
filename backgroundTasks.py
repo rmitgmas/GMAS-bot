@@ -1,4 +1,5 @@
 import random
+import json
 import asyncio
 from random import randint
 import discord
@@ -22,3 +23,10 @@ def get_red_orbs(users, user):
     return 0
 
 #<:redorb:729815039329959947>
+#<:dab:592239094738714634>
+#<:gasm:592239515289124874>
+#<:stonks:722680072674345021>
+#<:ayaya:592239431365165056>
+#<:sip:669755445568733195>
+#<:uwu:720136859270774834>
+#<:woke:718749924010885133>

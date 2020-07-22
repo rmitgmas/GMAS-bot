@@ -57,4 +57,37 @@ for filename in os.listdir('./cogs'):
         bot.load_extension(f'cogs.{filename[:-3]}')
         print(f'{filename} loaded')
 
+async def on_message(self, message):
+
+        channel = message.channel
+
+        if message.author == client.user:
+            return
+
+        messageToRecord = message.content
+        messageAuthor = message.author
+
+        #outputFile = open(r"output.txt","a")
+        #outputFile.write(str(message.content) + ": sent by: " + str(message.author) + "\n")
+
+        print(message.content)
+        print(message.author)
+
+        if message.content == "Hello there":
+            await channel.send("General Kenobi")
+
+        if message.content == "Hi":
+            await channel.send("Nice to meet you")
+
+        with open("bad_words.txt") as file:
+            bad_words = [bad_word.strip().lower() for bad_word in file.readlines()]
+
+        for bad_word in bad_words:
+            if message.content.lower().count(bad_word) > 0:
+                embed = discord.Embed(title ="You said a bad word", description="I will put you in the naughty corner")
+                await channel.send(content= None, embed = embed)
+                await message.delete()
+
+        await bot.process_commands(message)
+
 bot.run(token)
