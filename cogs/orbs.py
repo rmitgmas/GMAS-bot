@@ -24,7 +24,7 @@ class orbs(commands.Cog):
         await ctx.send(content= None, embed = embed)
 
     #Add orbs
-    @commands.command()
+    @commands.command(aliases=['ro', 'redorb'])
     async def redOrb(self, ctx):
         with open("users.json", "r") as f:
             users = json.load(f)
@@ -32,8 +32,11 @@ class orbs(commands.Cog):
         await update_data(users, ctx.message.author)
 
         numberOfRedOrbs = randint(500,1000)
-        await add_red_orbs(users, ctx.message.author, numberOfRedOrbs)
-        await ctx.send("You have gained {} red orbs <:redorb:729815039329959947>.".format(numberOfRedOrbs))
+        added = await add_red_orbs(users, ctx.message.author, numberOfRedOrbs)
+        if added is True:
+            await ctx.send("You have gained {} red orbs <:redorb:729815039329959947>.".format(numberOfRedOrbs))
+        else:
+            await ctx.send("Can't get your orbs yet! Your next orbs will be ready in **{}**.".format(added))
 
         with open("users.json", "w") as f:
             json.dump(users, f, indent = 4)

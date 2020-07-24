@@ -68,7 +68,12 @@ class mal_scraper(commands.Cog):
         return embed
 
     @commands.command()
-    async def anime(self, ctx, *, name):
+    async def anime(self, ctx, *, name = None):
+
+        if not name:
+            await ctx.send("No anime name provided")
+            return False
+
         m = await ctx.send("Working on it...")
         ANIME_URL = "https://myanimelist.net/anime.php?q=" + name
         result = requests.get(ANIME_URL)
