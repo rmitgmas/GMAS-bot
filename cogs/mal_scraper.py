@@ -56,12 +56,12 @@ class mal_scraper(commands.Cog):
         embed.add_field(name="Genres", value=genres, inline=True)
         embed.add_field(name="Studios", value=studios, inline=True)
         embed.add_field(name="Status", value=status, inline=True)
+        # "Premiered" just isn't there sometimes, gotta have some checks for it
         if border_text_elem("Premiered:"):
             premiered_link_elem = border_text_elem("Premiered:").find_next_sibling('a')
             premiered = "[{}]({})".format(premiered_link_elem.text, premiered_link_elem['href'])
             embed.add_field(name="Premiered", value=premiered, inline=True)
         embed.add_field(name="Aired", value=aired, inline=True)
-
 
         embed.description = description
 

@@ -64,8 +64,17 @@ class generalChat(commands.Cog):
                 emoji1 = random.choice(randomised["emote"])
                 greeting = random.choice(randomised["greeting"]).replace("username", f'{member.mention}')
 
-            await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!")
-
+            if channel is not None:
+                await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!")
+            else:
+                print("Couldn't find channel with ID {} for this server! \nTrying by name #general".format(serverConfig['general']))
+                channels = self.bot.get_guild(serverConfig['guildId']).channels
+                try:
+                    chan = next(c for c in channels if c.name is "general")
+                    await chan.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!")
+                except StopIteration:
+                    print("No channel #general! \nNo greetings for {} :((".format(member.name))
+                
             
 def setup(bot):
     bot.add_cog(generalChat(bot))
