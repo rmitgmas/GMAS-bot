@@ -3,7 +3,7 @@ import random
 import json
 from datetime import datetime
 from discord.ext import commands, tasks
-#from backgroundTasks import *
+from backgroundTasks import *
 
 class generalChat(commands.Cog):
     def __init__(self, bot):
@@ -47,6 +47,9 @@ class generalChat(commands.Cog):
             serverConfig = json.load(f)
             generalChannel = serverConfig["general"]
             rulesChannel = serverConfig["rules"]
+            guild = self.bot.get_guild(serverConfig['guildId'])
+            role = guild.get_role(serverConfig['welcomesquad'])
+
 
         if generalChannel is not None:
             with open("users.json", "r") as f:
@@ -65,13 +68,13 @@ class generalChat(commands.Cog):
                 greeting = random.choice(randomised["greeting"]).replace("username", f'{member.mention}')
 
             if channel is not None:
-                await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!")
+                await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!\n{role.mention}")
             else:
                 print("Couldn't find channel with ID {} for this server! \nTrying by name #general".format(serverConfig['general']))
                 channels = self.bot.get_guild(serverConfig['guildId']).channels
                 try:
                     chan = next(c for c in channels if c.name is "general")
-                    await chan.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!")
+                    await chan.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!\n{role.mention}")
                 except StopIteration:
                     print("No channel #general! \nNo greetings for {} :((".format(member.name))
                 
