@@ -57,7 +57,8 @@ for filename in os.listdir('./cogs'):
         bot.load_extension(f'cogs.{filename[:-3]}')
         print(f'{filename} loaded')
 
-async def on_message(self, message):
+@bot.event
+async def on_message(message):
 
         channel = message.channel
 
