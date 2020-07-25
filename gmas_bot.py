@@ -71,8 +71,13 @@ async def on_message(message):
         #outputFile = open(r"output.txt","a")
         #outputFile.write(str(message.content) + ": sent by: " + str(message.author) + "\n")
 
-        print(message.content)
-        print(message.author)
+        log_str = ""
+        log_str += f"\nGuild: **{message.guild.name}** *({message.guild.id})*"
+        log_str += f"\nChannel: **{channel.name}** *({channel.id})*"
+        log_str += f"\nUser: **{message.author}** *(Server name: **{message.author.nick}**)* - ID: {message.author.id}"
+        log_str += f"\nMessage: {message.content}"
+
+        print(log_str)
 
         if message.content == "Hello there":
             await channel.send("General Kenobi")

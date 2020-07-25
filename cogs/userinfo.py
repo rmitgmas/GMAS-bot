@@ -8,11 +8,59 @@ with open('config.json', 'r') as f:
     timezone = json.load(f)["Timezone"]
 
 abbr = pytz.timezone(timezone).localize(datetime.now(), is_dst=None).tzname()
-timeFormat = f'%I:%M %p, %d/%m/%y {abbr}'
+timeFormat = f'%I:%M %p, %d/%m/%Y {abbr}'
 
 class userinfo(commands.Cog):
     def __init__(self, bot):
         self.bot=bot
+
+    # The action takes either 'leave' 'join' or 'command' depending where it's called from 
+    def build_user_info_embed(self, member: discord.Member, action: str, ctx=None):        
+        with open('config.json', 'r') as f:
+            serverConfig = json.load(f)
+        
+        if action is 'command':
+            desc = f'Info for {member}'
+            if member.bot:
+                desc += ' (Bot Account)'
+            if member == self.bot.user:
+                desc += f'\n - That\'s me!'
+            if member == self.bot.get_guild(serverConfig['guildId']).owner:
+                desc += f'\n - Server Owner'
+
+            footer = f'Requested by {ctx.message.author}'
+            icon_url = ctx.message.author.avatar_url
+            title = member.display_name
+            colour = member.colour
+
+        elif action is 'leave' or 'join':
+            desc = serverConfig[action].replace("username", f'{member.mention}')
+            footer = datetime.utcnow().replace(tzinfo=pytz.utc) 
+            title = "User Left" if action is 'leave' else "User Joined" 
+            colour = discord.Colour.red() if action is 'leave' else discord.Colour.green()
+            
+        embed = discord.Embed(
+            title = title,
+            description = desc,
+            colour = colour
+        )
+
+        embed.set_thumbnail(url=member.avatar_url)
+        embed.add_field(name ='Username:',value = member, inline=True)
+        embed.add_field(name ='User ID:',value = member.id, inline=True)
+
+        joinTime = member.joined_at.replace(tzinfo=pytz.timezone('UTC')).astimezone(pytz.timezone(timezone))
+        embed.add_field(name ='Joined:',value = joinTime.strftime(timeFormat), inline=True)
+
+        createTime = member.created_at.replace(tzinfo=pytz.timezone('UTC')).astimezone(pytz.timezone(timezone))
+        embed.add_field(name ='Created:',value = createTime.strftime(timeFormat), inline=True)
+
+        if icon_url is not None:
+            embed.set_footer(text=footer, icon_url=icon_url)
+        else:
+            embed.set_footer(text=footer)
+        return embed
+
 
     ##Member Events
     #Member Join
@@ -23,24 +71,11 @@ class userinfo(commands.Cog):
 
         if serverConfig["logChannel"] is not None:
             channel = self.bot.get_channel(serverConfig["logChannel"])
-
-            joininfo = discord.Embed(
-                title = 'User Joined',
-                description = serverConfig["join"].replace("username", f'{member.mention}'),
-                colour = discord.Colour.green()
-            )
         
-            joininfo.set_thumbnail(url=member.avatar_url)
-            joininfo.add_field(name ='Username:',value = member, inline=True)
-            joininfo.add_field(name ='User ID:',value = member.id, inline=True)
+        embed = self.build_user_info_embed(member, 'join')
 
-            createTime = member.created_at.replace(tzinfo=pytz.timezone('UTC')).astimezone(pytz.timezone(timezone))
-            joininfo.add_field(name ='Created:',value = createTime.strftime(timeFormat), inline=False)
-
-            joinTime = datetime.utcnow().replace(tzinfo=pytz.utc)
-            joininfo.set_footer(text=joinTime.astimezone(pytz.timezone(timezone)).strftime(timeFormat))
-
-            await channel.send(embed=joininfo)
+        if channel is not None:
+            await channel.send(embed=embed)
 
             
     #Member Leave
@@ -51,25 +86,28 @@ class userinfo(commands.Cog):
 
         if serverConfig["logChannel"] is not None:
             channel = self.bot.get_channel(serverConfig["logChannel"])
+        
+        embed = self.build_user_info_embed(member, 'leave')
+    
+        if channel is not None:
+            await channel.send(embed=embed)
+
+
+    @commands.command(aliases=['info','user','ui','member','memberinfo','mi'])
+    @commands.guild_only()
+    async def userinfo(self, ctx, *, member : discord.Member=None):
+        # No specific user provided, we check the msg sender's profile
+        if member is None:
+            member = ctx.author
+        embed = self.build_user_info_embed(member, 'command', ctx)
+        await ctx.send(embed=embed)
+
+    # Handles the error for userinfo command, to handle when the parameter member is wrong (cf: https://stackoverflow.com/questions/49478189/discord-py-discord-notfound-exception)
+    @userinfo.error
+    async def userinfo_error(self, ctx, error):
+        if isinstance(error, commands.BadArgument):
+            await ctx.send(f'{error}')
             
-            leaveinfo = discord.Embed(
-                title = 'User Left',
-                description = serverConfig["leave"].replace("username", f'{member.mention}'),
-                colour = discord.Colour.red()
-            )
-
-            leaveinfo.set_thumbnail(url=member.avatar_url)
-            leaveinfo.add_field(name ='Username:',value = member, inline=True)
-            leaveinfo.add_field(name ='User ID:',value = member.id, inline=True)
-
-            joinTime = member.joined_at.replace(tzinfo=pytz.timezone('UTC')).astimezone(pytz.timezone(timezone))
-            leaveinfo.add_field(name ='Joined:',value = joinTime.strftime(timeFormat), inline=False)
-
-            leaveTime = datetime.utcnow().replace(tzinfo=pytz.utc)
-            leaveinfo.set_footer(text=leaveTime.astimezone(pytz.timezone(timezone)).strftime(timeFormat))
-
-            await channel.send(embed=leaveinfo)
-
 
     #Set channel for user log
     @commands.command(aliases=['sul'])
@@ -87,6 +125,7 @@ class userinfo(commands.Cog):
         await ctx.message.add_reaction('✅')
 
 
+    #leave and join could be put in one function with "join" or "leave" as a param for the JSON, and call that function in the @commands 
     @commands.command(aliases=['sj'])
     @commands.guild_only()
     @commands.has_permissions(administrator=True)   
@@ -132,46 +171,7 @@ class userinfo(commands.Cog):
 
         await ctx.message.add_reaction('✅')
 
-    @commands.command(aliases=['info','user','ui','member','memberinfo','mi'])
-    @commands.guild_only()
-    async def userinfo(self, ctx, member : discord.Member):
-        userinfo = discord.Embed(
-            title = member.display_name,
-            description = f'Info for {member}',
-            colour = member.colour
-        )
-        if member.bot:
-            userinfo.description+= ' (Bot Account)'
-
-        if member == self.bot.user:
-            userinfo.description+= f'\n - That\'s me!'
-
-        if member == ctx.guild.owner:
-            userinfo.description+= f'\n - Server Owner'
-
-        userinfo.set_thumbnail(url=member.avatar_url)
-        userinfo.add_field(name ='User ID:',value = member.id, inline=False)
-
-        joinTime = member.joined_at.replace(tzinfo=pytz.timezone('UTC')).astimezone(pytz.timezone(timezone))
-        userinfo.add_field(name ='Joined:',value = joinTime.strftime(timeFormat), inline=True)
-
-        createTime = member.created_at.replace(tzinfo=pytz.timezone('UTC')).astimezone(pytz.timezone(timezone))
-        userinfo.add_field(name ='Created:',value = createTime.strftime(timeFormat), inline=True)
-
-        roles = ''
-        if len(member.roles) > 1:
-            for role in reversed(member.roles):
-                if role == member.roles[1]:
-                    roles += f'{role.name}'
-                elif role.name != '@everyone':
-                    roles += f'{role.name}, '  
-        else:
-            roles = 'None'  
-
-        userinfo.add_field(name ='Roles:', value = roles, inline = False)
-        userinfo.set_footer(text=f'Requested by {ctx.message.author}', icon_url=ctx.message.author.avatar_url)
-
-        await ctx.send(embed=userinfo)
+    
 
 def setup(bot):
     bot.add_cog(userinfo(bot))
