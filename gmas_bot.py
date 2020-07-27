@@ -78,9 +78,9 @@ async def on_message(message):
         log_str += f"\nMessage: {message.content}"
         if message.attachments and len(message.attachments):
             str_ = f"Files attached ({len(message.attachments)}): "
-            filenames = ", ".join([a.filename for a in message.attachments])
+            filenames = ", ".join([f"{a.filename} ({round(a.size/1000, 2)}KB)" for a in message.attachments])
             str_ += f"{filenames}"
-            log_str += f"{str_}"
+            log_str += f"[{str_}]"
 
         if not message.author.bot:
             print(log_str)

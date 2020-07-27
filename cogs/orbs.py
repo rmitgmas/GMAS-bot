@@ -65,7 +65,7 @@ class orbs(commands.Cog):
             print(user_info)
             ro = u[1]["red orbs"]
             if user_info is not None:
-                embed.description += f"**{i+1}. {user_info.name}** - **{ro}** <:redorb:729815039329959947>\n"
+                embed.description += f"**{i+1}. {user_info.name}#{user_info.discriminator}** - **{ro}** <:redorb:729815039329959947>\n"
         
             if embed.description is "":
                 embed.description = "No member with any Red Orbs..."
