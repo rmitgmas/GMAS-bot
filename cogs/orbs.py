@@ -42,5 +42,35 @@ class orbs(commands.Cog):
             json.dump(users, f, indent = 4)
 
 
+    @commands.command(aliases=['lb', 'board', 'ladder', 'ranking'])
+    async def leaderboard(self, ctx):
+        with open("users.json", "r") as f:
+            users = json.load(f)
+
+        def myfunc(n):
+            return n[1]["red orbs"]
+
+        sorted_users = sorted(users.items(), key=myfunc, reverse=True)
+
+        best_player = self.bot.get_user(int(sorted_users[0][0]))
+        embed = discord.Embed(title=f"{ctx.guild.name} Red Orb leaderboard")
+        
+        if best_player is not None:
+            embed.set_thumbnail(url=best_player.avatar_url)
+        
+        embed.description = ""
+        
+        for i, u in enumerate(sorted_users[0:10]):
+            user_info = self.bot.get_user(int(u[0]))
+            print(user_info)
+            ro = u[1]["red orbs"]
+            if user_info is not None:
+                embed.description += f"**{i+1}. {user_info.name}** - **{ro}** <:redorb:729815039329959947>\n"
+        
+            if embed.description is "":
+                embed.description = "No member with any Red Orbs..."
+        await ctx.send(embed=embed)
+
+
 def setup(bot):
     bot.add_cog(orbs(bot))

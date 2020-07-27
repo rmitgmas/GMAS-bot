@@ -3,7 +3,7 @@ import random
 import json
 from datetime import datetime
 from discord.ext import commands, tasks
-from backgroundTasks import *
+import backgroundTasks
 
 class generalChat(commands.Cog):
     def __init__(self, bot):
@@ -55,7 +55,7 @@ class generalChat(commands.Cog):
             with open("users.json", "r") as f:
                 users = json.load(f)
 
-            await update_data(users, member)
+            await backgroundTasks.update_data(users, member)
 
             with open("users.json", "w") as f:
                 json.dump(users, f)

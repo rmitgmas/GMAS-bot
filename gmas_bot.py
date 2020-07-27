@@ -76,8 +76,14 @@ async def on_message(message):
         log_str += f"\nChannel: **{channel.name}** *({channel.id})*"
         log_str += f"\nUser: **{message.author}** *(Server name: **{message.author.nick}**)* - ID: {message.author.id}"
         log_str += f"\nMessage: {message.content}"
+        if message.attachments and len(message.attachments):
+            str_ = f"Files attached ({len(message.attachments)}): "
+            filenames = ", ".join([a.filename for a in message.attachments])
+            str_ += f"{filenames}"
+            log_str += f"{str_}"
 
-        print(log_str)
+        if not message.author.bot:
+            print(log_str)
 
         if message.content == "Hello there":
             await channel.send("General Kenobi")
