@@ -5,3 +5,4 @@ __pycache__
 
 # Gotta keep those token from being leaked :)
 token.txt
+users.json
