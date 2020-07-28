@@ -91,14 +91,14 @@ async def on_message(message):
         if message.content == "Hi":
             await channel.send("Nice to meet you")
 
-        with open("bad_words.txt") as file:
-            bad_words = [bad_word.strip().lower() for bad_word in file.readlines()]
+        # with open("bad_words.txt") as file:
+        #     bad_words = [bad_word.strip().lower() for bad_word in file.readlines()]
 
-        for bad_word in bad_words:
-            if message.content.lower().count(bad_word) > 0:
-                embed = discord.Embed(title ="You said a bad word", description="I will put you in the naughty corner")
-                await channel.send(content= None, embed = embed)
-                await message.delete()
+        # for bad_word in bad_words:
+        #     if message.content.lower().count(bad_word) > 0:
+        #         embed = discord.Embed(title ="You said a bad word", description="I will put you in the naughty corner")
+        #         await channel.send(content= None, embed = embed)
+        #         await message.delete()
 
         await bot.process_commands(message)
 
