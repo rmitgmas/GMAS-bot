@@ -2,7 +2,7 @@ import discord
 import random
 import json
 from discord.ext import commands, tasks
-from backgroundTasks import *
+import backgroundTasks
 
 class orbs(commands.Cog):
     def __init__(self, bot):
@@ -14,9 +14,9 @@ class orbs(commands.Cog):
         with open("users.json", "r") as f:
             users = json.load(f)
 
-        await update_data(users, ctx.author)
+        await backgroundTasks.update_data(users, ctx.author)
 
-        numberOfRedOrbs = get_red_orbs(users, ctx.message.author)
+        numberOfRedOrbs = backgroundTasks.get_red_orbs(users, ctx.message.author)
         name = str(ctx.message.author)
         embed = discord.Embed(title=name +'s profile')
         embed.add_field(name="Number of Red Orbs", value=str(numberOfRedOrbs) + "<:redorb:729815039329959947>")
@@ -29,10 +29,10 @@ class orbs(commands.Cog):
         with open("users.json", "r") as f:
             users = json.load(f)
 
-        await update_data(users, ctx.message.author)
+        await backgroundTasks.update_data(users, ctx.message.author)
 
-        numberOfRedOrbs = randint(500,1000)
-        added = await add_red_orbs(users, ctx.message.author, numberOfRedOrbs)
+        numberOfRedOrbs = backgroundTasks.randint(500,1000)
+        added = await backgroundTasks.add_red_orbs(users, ctx.message.author, numberOfRedOrbs)
         if added is True:
             await ctx.send("You have gained {} red orbs <:redorb:729815039329959947>.".format(numberOfRedOrbs))
         else:
@@ -65,7 +65,7 @@ class orbs(commands.Cog):
             print(user_info)
             ro = u[1]["red orbs"]
             if user_info is not None:
-                embed.description += f"**{i+1}. {user_info.name}#{user_info.discriminator}** - **{ro}** <:redorb:729815039329959947>\n"
+                embed.description += f"**{i+1}. {user_info}** - **{ro}** <:redorb:729815039329959947>\n"
         
             if embed.description is "":
                 embed.description = "No member with any Red Orbs..."

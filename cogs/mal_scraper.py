@@ -68,7 +68,7 @@ class mal_scraper(commands.Cog):
         return embed
 
     @commands.command()
-    async def anime(self, ctx, *, name = None):
+    async def anime(self, ctx, *, name):
 
         if not name:
             await ctx.send("No anime name provided")
