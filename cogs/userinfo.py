@@ -70,12 +70,11 @@ class userinfo(commands.Cog):
             serverConfig = json.load(f)
 
         if serverConfig["logChannel"] is not None:
-            channel = self.bot.get_channel(serverConfig["logChannel"])
-        
-        embed = self.build_user_info_embed(member, 'join')
-
-        if channel is not None:
+            channel = self.bot.get_channel(serverConfig["logChannel"])        
+            embed = self.build_user_info_embed(member, 'join')
             await channel.send(embed=embed)
+        else:
+            print(f"User {member} joined")
 
             
     #Member Leave
@@ -86,11 +85,11 @@ class userinfo(commands.Cog):
 
         if serverConfig["logChannel"] is not None:
             channel = self.bot.get_channel(serverConfig["logChannel"])
-        
-        embed = self.build_user_info_embed(member, 'leave')
-    
-        if channel is not None:
+            embed = self.build_user_info_embed(member, 'leave')
             await channel.send(embed=embed)
+
+        else:
+            print(f"User {member} left")
 
 
     @commands.command(aliases=['info','user','ui','member','memberinfo','mi'])

@@ -104,16 +104,22 @@ async def on_message(message):
 
 @bot.event
 async def on_command_error(ctx, error):
-    keys = [i for i in ctx.command.clean_params.keys()]
-    print(keys)
-    cmd_args = f"`{'`, `'.join(keys)}`"
-    print(cmd_args)
+    if ctx.command is None:
+        print("Unknown command")
+        return
+    command_args_arr = [i for i in ctx.command.clean_params.keys()]
+    command_args = f"`{'`, `'.join(command_args_arr)}`"
     # Maybe only print certain type of arguments? https://docs.python.org/3/library/inspect.html#inspect.Parameter
     # Or don't print them this way (use command.usage property/do per command error)
     if isinstance(error, commands.MissingRequiredArgument):
-        await ctx.send(f"Missing parameter {cmd_args} to use the command")
+        await ctx.send(f"Missing parameter {command_args} to use the command")
     else:
-        await ctx.send(f"Something went wrong! Look into it @Hackers")
+        with open("config.json") as f:
+            config = json.load(f)
+        
+        bot_dev_role = ctx.guild.get_role(config['botDevId'])
+
+        # await ctx.send(f"Something went wrong! Look into it {bot_dev_role.mention}")
         print(error)
 
 bot.run(token)
