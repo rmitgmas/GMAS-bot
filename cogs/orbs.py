@@ -4,7 +4,8 @@ import json
 from discord.ext import commands, tasks
 import backgroundTasks
 
-class orbs(commands.Cog):
+class orbs(commands.Cog, name="Orbs"):
+    """Do stuff with red orbs, the currency/points of the server"""
     def __init__(self, bot):
         self.bot=bot
 

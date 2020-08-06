@@ -101,7 +101,8 @@ class userinfo(commands.Cog):
         embed = self.build_user_info_embed(member, 'command', ctx)
         await ctx.send(embed=embed)
 
-    # Handles the error for userinfo command, to handle when the parameter member is wrong (cf: https://stackoverflow.com/questions/49478189/discord-py-discord-notfound-exception)
+    # Handles the error for userinfo command, to handle when the parameter member is wrong 
+    # (cf: https://stackoverflow.com/questions/49478189/discord-py-discord-notfound-exception)
     @userinfo.error
     async def userinfo_error(self, ctx, error):
         if isinstance(error, commands.BadArgument):

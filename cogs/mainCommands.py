@@ -7,12 +7,12 @@ class mainCommands(commands.Cog):
     def __init__(self, bot):
         self.bot=bot
         
-    #Help Command
-    @commands.command()
-    async def help(self, ctx):
-        embed = discord.Embed(title ="GMAS bot command list", description="Here are my commands!")
-        embed.add_field(name="sample command", value="sample text")
-        await ctx.send(content= None, embed = embed)
+    # #Help Command
+    # @commands.command()
+    # async def help(self, ctx):
+    #     embed = discord.Embed(title ="GMAS bot command list", description="Here are my commands!")
+    #     embed.add_field(name="sample command", value="sample text")
+    #     await ctx.send(content= None, embed = embed)
 
     #Latency
     @commands.command()

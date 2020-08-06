@@ -47,8 +47,9 @@ class generalChat(commands.Cog):
             serverConfig = json.load(f)
             generalChannel = serverConfig["general"]
             rulesChannel = serverConfig["rules"]
+            # member.guild might just work actually
             guild = self.bot.get_guild(serverConfig['guildId'])
-            role = guild.get_role(serverConfig['welcomesquad'])
+            welcome_role = guild.get_role(serverConfig['welcomesquad'])
 
 
         if generalChannel is not None:
@@ -67,17 +68,20 @@ class generalChat(commands.Cog):
                 emoji1 = random.choice(randomised["emote"])
                 greeting = random.choice(randomised["greeting"]).replace("username", f'{member.mention}')
 
-            if channel is not None:
-                await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!\n{role.mention}")
-            else:
+            if channel is None:
                 print("Couldn't find channel with ID {} for this server! \nTrying by name #general".format(serverConfig['general']))
                 channels = self.bot.get_guild(serverConfig['guildId']).channels
                 try:
-                    chan = next(c for c in channels if c.name is "general")
-                    await chan.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention}, and enjoy your stay!\n{role.mention}")
+                    channel = next(c for c in channels if c.name is "general")
                 except StopIteration:
                     print("No channel #general! \nNo greetings for {} :((".format(member.name))
-                
+                # could also take the guild id as the channel id, since the default channel of a guild has the same id as the guild
+                if channel is None:
+                    print("Couldn't find general channel")
+                    return
+            temp = "the server rules"
+            await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention or temp}, and enjoy your stay!\n{welcome_role.mention}")
+              
             
 def setup(bot):
     bot.add_cog(generalChat(bot))

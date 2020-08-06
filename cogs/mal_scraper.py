@@ -4,7 +4,8 @@ import sys
 from discord.ext import commands, tasks
 import discord
 
-class mal_scraper(commands.Cog):
+class mal_scraper(commands.Cog, name="Anime"):
+    """Stuff to do with anime"""
     def __init__(self, bot):
         self.bot=bot
 
@@ -67,7 +68,7 @@ class mal_scraper(commands.Cog):
 
         return embed
 
-    @commands.command()
+    @commands.command(help="Searches for an anime by name, returning a list of choices. After choosing an anime from the list, display various information about it. The details are retrieved using data from MyAnimelist.com", brief="Gives detail about a specific anime")
     async def anime(self, ctx, *, name):
 
         if not name:
