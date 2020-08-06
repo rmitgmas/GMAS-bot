@@ -61,9 +61,30 @@ class league(commands.Cog):
 
     @league.command(aliases=['serverusernames', 'serversummonernames', 'servn', 'servnames'])
     async def servernames(self, ctx):
-        with open("league.json", 'r') as f:
+        with open("league.json", 'r', encoding='utf-8') as f:
             league_users = json.load(f)
-        await ctx.send("TBA: prints a list of all discord username alongside their league usernamesif they have it set")
+        
+        embed = discord.Embed(title=f"{ctx.guild.name} list of League of Legends usernames")
+        embed.description = "*(Server name  -  League username)*\n\n"
+
+        # Only keep ones with name
+        league_usernames = [lu for lu in league_users if league_users[lu]['name']]
+        
+        if not len(league_usernames):
+            embed.description += "*No username set for this server*"
+        else:
+            for u in league_usernames:
+                guild_name = ctx.guild.get_member(int(u)).display_name
+                print(guild_name)
+                league_name = league_users[u]['name']
+                print(league_name)
+                embed.description += f"**{guild_name}** - **{league_name}**\n"
+
+        embed.set_thumbnail(url="https://i.imgur.com/vgERB5I.png")
+
+        embed.set_footer(text=f"Showing {len(league_users)} users")
+
+        await ctx.send(embed=embed)
 
 
     # streamline it, separate in smaller functions, save some league variables, 

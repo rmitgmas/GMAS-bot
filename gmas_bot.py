@@ -31,6 +31,7 @@ async def on_ready():
 async def load(ctx, extension):
     bot.load_extension(f'cogs.{extension}')
     await ctx.message.add_reaction('✅')
+    await ctx.message.delete(delay=2)
     print(f'{extension} loaded')
 
 #Unload Cog
@@ -39,6 +40,7 @@ async def load(ctx, extension):
 async def unload(ctx, extension):
     bot.unload_extension(f'cogs.{extension}')
     await ctx.message.add_reaction('✅')
+    await ctx.message.delete(delay=2)
     print(f'{extension} unloaded')
     
 #Reload Cog
@@ -48,6 +50,7 @@ async def reload(ctx, extension):
     bot.unload_extension(f'cogs.{extension}')
     bot.load_extension(f'cogs.{extension}')
     await ctx.message.add_reaction('✅')
+    await ctx.message.delete(delay=2)
     print(f'{extension} reloaded')
 
 #Preload Cogs
