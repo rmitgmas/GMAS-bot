@@ -3,6 +3,7 @@ import json
 from discord.ext import commands, tasks
 from typing import Union
 import requests
+import os
 
 class league(commands.Cog):
     def __init__(self, bot):
@@ -90,7 +91,8 @@ class league(commands.Cog):
            
 
         async with ctx.typing():
-            headers = {"X-Riot-Token": "RGAPI-073db4ba-17f8-4116-a4d1-85442974eecb"}
+            os.environ['RIOT_API_KEY'] = "Your API key here"
+            headers = {"X-Riot-Token": os.environ.get('RIOT_API_KEY')}
             
             # Summoner
             url = f"https://oc1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{name}"
