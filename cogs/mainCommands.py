@@ -3,7 +3,7 @@ import random
 import json
 from discord.ext import commands, tasks
 
-class mainCommands(commands.Cog):
+class mainCommands(commands.Cog, name="Main"):
     def __init__(self, bot):
         self.bot=bot
         
@@ -25,6 +25,16 @@ class mainCommands(commands.Cog):
     @commands.guild_only()
     async def say(self, ctx, *, message):
         await ctx.send(message)
+
+    #Repeat whatever
+    @commands.command(aliases=['d'])
+    @commands.is_owner()
+    async def delete(self, ctx, *msg_ids):
+        for msg_id in msg_ids:
+            m = await ctx.channel.fetch_message(msg_id)
+            if m:
+                await m.delete()
+        await ctx.message.delete()
 
     #Repeat whatever AND delete
     @commands.command()

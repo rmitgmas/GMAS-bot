@@ -11,7 +11,11 @@ from discord.ext.commands import Bot
 from discord.ext.tasks import loop
 from discord.voice_client import VoiceClient
 import backgroundTasks
+from time import sleep
+import pytz
+import datetime
 
+from cogs import roles
 client = discord.Client()
 token = open(r"token.txt", "r").read()
 
@@ -23,6 +27,10 @@ async def on_ready():
     print("My body is ready!")
     activity = discord.Activity(name=f'anime', type=discord.ActivityType.watching)
     await bot.change_presence(status = discord.Status.online, activity=activity)
+
+@bot.check
+async def globally_block_dms(ctx):
+    return ctx.guild is not None
 
 #Dealing With Cog Shit
 #Load Cog
@@ -72,14 +80,15 @@ async def on_message(message):
     Guild: **{message.guild.name}** *({message.guild.id})*
     Channel: **{channel.name}** *({channel.id})*
     User: **{message.author}** *(Server name: **{message.author.display_name}**)* - ID: {message.author.id}
-    Message: {message.content}"""
+    Message: {message.clean_content}
+    {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"""
 
     if has_attchmt:
         filenames = ", ".join([f"{a.filename} - {a.url} ({round(a.size/1000, 2)}KB)" for a in message.attachments])
         attchmt_str = f"Files attached ({len(message.attachments)}): {filenames}"
         log_str += f"\n[{attchmt_str}]"
         
-    if not message.author.bot:
+    if not message.author.bot and channel.name != "mudae":
         print(log_str)
 
 
