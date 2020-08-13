@@ -44,11 +44,15 @@ class mainCommands(commands.Cog, name="Main"):
         await ctx.send(message)
 
     #Kill bot
-    @commands.command()
+    @commands.command(hidden=True)
     async def kill(self, ctx):
-        if ctx.message.author.id == 253253450765172747:
+        if 733212159940624446 in [r.id for r in ctx.author.roles]:
             await ctx.send("Terminating...")
-            exit()
+            try:
+                await self.bot.logout()
+            except:
+                print("EnvironmentError")
+                self.bot.clear()
         else:
             await ctx.send("You cannot kill me, I am Omega. You cannot kill me, I am SUBHUMAN!")
 

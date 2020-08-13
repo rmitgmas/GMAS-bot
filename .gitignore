@@ -2,6 +2,7 @@ cogs/__pycache__
 __pycache__
 .vscode
 *.pyc
+logs
 
 # Gotta keep those token from being leaked :)
 token.txt

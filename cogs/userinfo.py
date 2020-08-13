@@ -10,7 +10,7 @@ with open('config.json', 'r') as f:
 abbr = pytz.timezone(timezone).localize(datetime.now(), is_dst=None).tzname()
 timeFormat = f'%I:%M %p, %d/%m/%Y {abbr}'
 
-class userinfo(commands.Cog):
+class userinfo(commands.Cog, name="users"):
     def __init__(self, bot):
         self.bot=bot
 

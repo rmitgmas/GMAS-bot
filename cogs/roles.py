@@ -213,8 +213,8 @@ class roles(commands.Cog, name="Roles"):
                 return
 
             await member.add_roles(role)
-            m = await channel.send(f'**{member.mention}** assigned role {message.content}')
-            await m.delete(delay=3)
+            # m = await channel.send(f'**{member.mention}** assigned role {message.content}')
+            # await m.delete(delay=3)
 
     @commands.Cog.listener()
     async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
@@ -237,8 +237,8 @@ class roles(commands.Cog, name="Roles"):
                 return
 
             await member.remove_roles(role)
-            m = await channel.send(f'**{member.mention}** removed role {message.content}')
-            await m.delete(delay=3)
+            # m = await channel.send(f'**{member.mention}** removed role {message.content}')
+            # await m.delete(delay=3)
 
     @commands.command(aliases=["addrole", "ar", "r"])
     async def role(self, ctx, *, role: discord.Role = None):
