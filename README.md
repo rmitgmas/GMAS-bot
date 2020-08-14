@@ -14,6 +14,7 @@ Contributors
 - Smug Echidona#7901
 - Alli#0096
 - Jojofoulk#7083
+- yuuiko#1345
 
 Discord
 -------
