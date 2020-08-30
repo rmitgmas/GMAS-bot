@@ -24,9 +24,25 @@ class mainCommands(commands.Cog, name="Main"):
     @commands.command()
     @commands.guild_only()
     async def say(self, ctx, *, message):
-        await ctx.send(message)
+        if "@" in message:
+            await ctx.send("I won't say it...")
+            if "@everyone" in message:
+                await ctx.author.edit(nick=f"{ctx.author.nick[:9]} [TRIED TO @everyone]😂", reason="[TRIED TO PING EVERYONE] 😂")
+        else:
+            await ctx.send(message)
 
-    #Repeat whatever
+    #Repeat whatever AND delete
+    @commands.command()
+    @commands.guild_only()
+    async def sayd(self, ctx, *, message):
+        await ctx.message.delete(delay=None)
+        if "@" in message:
+            await ctx.send("I won't say it...")
+            if "@everyone" in message:
+                await ctx.author.edit(nick=f"{ctx.author.nick[:9]} [TRIED TO @everyone]😂", reason="[TRIED TO PING EVERYONE] 😂")
+        else:
+            await ctx.send(message)
+
     @commands.command(aliases=['d'])
     @commands.is_owner()
     async def delete(self, ctx, *msg_ids):
@@ -36,12 +52,29 @@ class mainCommands(commands.Cog, name="Main"):
                 await m.delete()
         await ctx.message.delete()
 
-    #Repeat whatever AND delete
-    @commands.command()
-    @commands.guild_only()
-    async def sayd(self, ctx, *, message):
-        await ctx.message.delete(delay=None)
-        await ctx.send(message)
+    @commands.command(aliases=['w'])
+    @commands.is_owner()
+    async def write(self, ctx, *, msg):
+        
+        msg_arr = msg.split(' ')
+        print(msg_arr[0])
+
+        if msg_arr[0].isdigit():
+            channel = ctx.guild.get_channel(int(msg_arr[0]))
+            if channel is None:
+                channel = ctx.channel
+            else:
+                msg_arr.pop(0)
+        else:
+            channel = ctx.channel
+        msg = ' '.join(msg_arr)
+        
+        if not msg:
+            await ctx.channel.send('No message included')
+            return 
+
+        await channel.send(msg)
+        await ctx.message.delete()
 
     #Kill bot
     @commands.command(hidden=True)

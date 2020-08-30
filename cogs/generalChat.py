@@ -46,7 +46,8 @@ class generalChat(commands.Cog):
         with open('config.json', 'r') as f:
             serverConfig = json.load(f)
             generalChannel = serverConfig["general"]
-            rulesChannel = serverConfig["rules"]
+            rulesChannelId = serverConfig["rules"]
+            rolesChannelId = serverConfig["rolesChannelId"]
             # member.guild might just work actually
             guild = self.bot.get_guild(serverConfig['guildId'])
             welcome_role = guild.get_role(serverConfig['welcomesquad'])
@@ -79,8 +80,11 @@ class generalChat(commands.Cog):
                 if channel is None:
                     print("Couldn't find general channel")
                     return
-            temp = "the server rules"
-            await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {self.bot.get_channel(rulesChannel).mention or temp}, and enjoy your stay!\n{welcome_role.mention}")
+
+            rolesChannel = self.bot.get_channel(rolesChannelId)
+            rulesChannel = self.bot.get_channel(rulesChannelId)
+            
+            await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {rulesChannel.mention or 'the server rules'} and {rolesChannel.mention or 'the roles channel'}, and enjoy your stay!\n{welcome_role.mention}")
               
             
 def setup(bot):

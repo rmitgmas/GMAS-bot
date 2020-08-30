@@ -2,7 +2,6 @@ import discord
 from discord.ext import commands, tasks
 import json
 
-
 class roles(commands.Cog, name="Roles"):
     
     def __init__(self, bot):
@@ -26,6 +25,26 @@ class roles(commands.Cog, name="Roles"):
         with open('roles/roles_description.json', 'r', encoding='utf-8') as f:
             return json.load(f)
     
+    async def role_reaction_check(self, guild):
+        """
+        This is used to check if a user has reacted to a role 
+        message but doesnt have the role assigned. Useful if they 
+        tried to add the role when the bot was down
+        """
+        role_channel_id = await self.get_roles_channel()
+
+        channel = guild.get_channel(role_channel_id)
+        roles = guild.roles
+        i = roles.index(guild.me.top_role)
+        roles_name = [r.name for r in roles[:i] if r.managed == False]
+
+        async for message in channel.history(limit=200):
+            no_markdown_content = message.content.replace('*', '').replace('`','')
+            
+            if message.author.bot and len(message.reactions) and no_markdown_content in roles_name:
+                print("find the role msgs")
+                # get users that reacted, check their roles, if role not in their roles => add it
+
 
     @commands.command(aliases=['src', 'setrolechannel',' setroleschannel'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
@@ -41,7 +60,7 @@ class roles(commands.Cog, name="Roles"):
 
    
 
-    @commands.command(aliases=['srd', 'setroledescription'], hidden=True)
+    @commands.command(aliases=['srd', 'setroledescription','rd'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def set_roles_description(self, ctx, *, args):
         args_list = args.split('=')
@@ -59,6 +78,7 @@ class roles(commands.Cog, name="Roles"):
             f.seek(0)
             json.dump(roles, f, indent=4)
             f.truncate()
+        await self.update_role_list_embed(ctx.guild)
         await ctx.message.add_reaction('✅')
 
 
@@ -77,6 +97,17 @@ class roles(commands.Cog, name="Roles"):
             embed.add_field(name=role.name, value=role_description, inline=True)
         return embed
 
+    async def update_role_list_embed(self, guild):
+        role_channel_id = await self.get_roles_channel()
+        channel: discord.TextChannel = guild.get_channel(role_channel_id)
+        async for message in channel.history(limit=200):
+            if message.embeds and message.embeds[0].title == "List of roles":
+                msg = await channel.fetch_message(message.id)
+        if not message:
+            print(f"Couldn't find embed role list. update manually instead")
+        new_embed = await self.role_list(guild)
+        await msg.edit(embed=new_embed)
+
     async def role_reactions(self, guild: discord.Guild):
         role_channel_id = await self.get_roles_channel()
         # could improve by check if already existing role messages exists
@@ -90,7 +121,7 @@ class roles(commands.Cog, name="Roles"):
             and gr.name != "@everyone"\
             and gr.name != "bots"\
             and gr.name != "Alumni"\
-            and gr.name != "Hackers"]
+            ]
         for role in reversed(assignable_roles):
                 role_msg = await channel.send(f"**`{role.name}`**")
                 await role_msg.add_reaction('✅')
@@ -110,12 +141,33 @@ class roles(commands.Cog, name="Roles"):
                 result.append(message)
         return result
 
+    
+    @commands.command(aliases=['arr'], hidden=True)
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    async def add_role_reaction(self, ctx, *, role_name):
+        role_channel_id = await self.get_roles_channel()
+        channel = ctx.guild.get_channel(role_channel_id)
+        roles = ctx.guild.roles
+        roles_names = [r.name for r in roles if r.managed == False]
+
+        if role_name in roles_names:
+            posted_roles = [pr.content.replace('*', '').replace('`','') for pr in await self.get_role_messages(ctx.guild)]
+            if role_name in posted_roles:
+                await ctx.channel.send(f'Role `{role_name}` already posted')
+                return
+            m = await channel.send(f'`{role_name}`')
+            await m.add_reaction('✅')
+            await ctx.message.add_reaction('✅')
+        else:
+            await ctx.channel.send(f"Role {role_name} doesn't exist")
+
     @commands.command(aliases=['rl'])
     async def rolelist(self, ctx):
         embed = await self.role_list(guild=ctx.guild) 
         await ctx.channel.send(embed=embed)
 
     @commands.command(aliases=['crm', 'createrolemessages'], hidden=True)
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def create_role_messages(self, ctx, full=''):
         if str.lower(str(full)) == 'full' or full:
             full = True
@@ -129,6 +181,7 @@ class roles(commands.Cog, name="Roles"):
         await ctx.message.add_reaction('✅')
     
     @commands.command(aliases=['drm', 'deleterolemessages'], hidden=True)
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def delete_role_messages(self, ctx):
         # this snippet could be a clear_messages function tbh (since we repeat it on_role_created)
         guild = self.bot.get_guild(ctx.guild.id)
@@ -139,6 +192,7 @@ class roles(commands.Cog, name="Roles"):
         await ctx.message.add_reaction('✅')
 
     @commands.command(aliases=['rrm', 'resetrolemessages'], hidden=True)
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def reset_role_messages(self, ctx):
         guild = self.bot.get_guild(ctx.guild.id)
         role_channel_id = await self.get_roles_channel()
@@ -162,6 +216,7 @@ class roles(commands.Cog, name="Roles"):
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
+        # The role description json should update too
         role_channel_id = await self.get_roles_channel()
 
         guild = self.bot.get_guild(role.guild.id)

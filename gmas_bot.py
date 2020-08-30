@@ -13,9 +13,20 @@ from discord.voice_client import VoiceClient
 import backgroundTasks
 from time import sleep
 import pytz
-import datetime
+import asyncio
+from datetime import datetime
+from json import JSONEncoder
 
 from cogs import roles
+
+import logging
+
+logger = logging.getLogger('discord')
+logger.setLevel(logging.DEBUG)
+handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
+handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
+logger.addHandler(handler)
+
 client = discord.Client()
 token = open(r"token.txt", "r").read()
 
@@ -27,6 +38,13 @@ async def on_ready():
     print("My body is ready!")
     activity = discord.Activity(name=f'anime', type=discord.ActivityType.watching)
     await bot.change_presence(status = discord.Status.online, activity=activity)
+
+@bot.event
+async def on_resumed():
+    print("resume")
+@bot.event
+async def on_disconnect():
+    print("disconnected")
 
 @bot.check
 async def globally_block_dms(ctx):
@@ -55,11 +73,17 @@ async def unload(ctx, extension):
 @bot.command(hidden=True)
 @commands.is_owner()
 async def reload(ctx, extension):
-    bot.unload_extension(f'cogs.{extension}')
-    bot.load_extension(f'cogs.{extension}')
-    await ctx.message.add_reaction('✅')
-    await ctx.message.delete(delay=2)
-    print(f'{extension} reloaded')
+    # search cog by name instead
+    try:
+        bot.reload_extension(f'cogs.{extension}')
+        await ctx.message.add_reaction('✅')
+        await ctx.message.delete(delay=2)
+        print(f'{extension} reloaded')
+    except:
+        await ctx.message.add_reaction('❌')
+        await ctx.message.delete(delay=2)
+        print("extension not found")
+        return
 
 #Preload Cogs
 for filename in os.listdir('./cogs'):
@@ -126,4 +150,18 @@ async def on_command_error(ctx, error):
         # await ctx.send(f"Something went wrong! Look into it {bot_dev_role.mention}")
         print(error)
 
-bot.run(token)
+@bot.on_error
+async def on_error(event, *args, **kwargs):
+    print(f"Event: {event}\nArgs: {args}\nKwargs: {kwargs}")
+
+loop = asyncio.get_event_loop()
+try:
+    print('starting')
+    loop.run_until_complete(bot.start(token))
+except KeyboardInterrupt:
+    loop.run_until_complete(bot.logout())
+    # cancel all tasks lingering
+except Exception as e:
+    print(e)
+finally:
+    loop.close()

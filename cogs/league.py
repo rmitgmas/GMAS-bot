@@ -11,7 +11,7 @@ class league(commands.Cog):
     def __init__(self, bot):
         self.bot=bot
 
-    # Could get a member's league username using the profile if they have league displayed
+    # Could get a member's league username using the profile if they have league displayed on discord profile
     # Either do it on a per command basis, or run a tasks that fetches it for all memeber
     # and adds entries to the json file (that task could be run daily)
 
@@ -81,9 +81,9 @@ class league(commands.Cog):
         else:
             for u in league_usernames:
                 guild_name = ctx.guild.get_member(int(u)).display_name
-                print(guild_name)
+                # print(guild_name)
                 league_name = league_users[u]['name']
-                print(league_name)
+                # print(league_name)
                 embed.description += f"**{guild_name}** - **{league_name}**\n"
 
         embed.set_thumbnail(url="https://i.imgur.com/vgERB5I.png")
@@ -128,9 +128,7 @@ class league(commands.Cog):
             os.environ['RIOT_API_KEY'] = "Your API key here"
             headers = {"X-Riot-Token": os.environ.get('RIOT_API_KEY')}
             
-            print(name)
-
-
+            # print(name)
             # Summoner
             url = f"https://oc1.api.riotgames.com/lol/summoner/v4/summoners/by-name/{name}"
             r = requests.get(url, headers=headers)
