@@ -105,10 +105,10 @@ async def on_message(message):
     Channel: **{channel.name}** *({channel.id})*
     User: **{message.author}** *(Server name: **{message.author.display_name}**)* - ID: {message.author.id}
     Message: {message.clean_content}
-    {datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"""
+    {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"""
 
     if has_attchmt:
-        filenames = ", ".join([f"{a.filename} - {a.url} ({round(a.size/1000, 2)}KB)" for a in message.attachments])
+        filenames = ", ".join([f"[{a.id}]{a.filename} - {a.proxy_url} ({round(a.size/1000, 2)}KB)" for a in message.attachments])
         attchmt_str = f"Files attached ({len(message.attachments)}): {filenames}"
         log_str += f"\n[{attchmt_str}]"
         
