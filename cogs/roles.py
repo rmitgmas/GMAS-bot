@@ -265,6 +265,7 @@ class roles(commands.Cog, name="Roles"):
             role = discord.utils.get(guild.roles, name=role_name)
 
             if role is None:
+                print('role not found to be added')
                 return
 
             await member.add_roles(role)
@@ -289,6 +290,7 @@ class roles(commands.Cog, name="Roles"):
             role = discord.utils.get(guild.roles, name=role_name)
 
             if role is None:
+                print('role not found to be removed')
                 return
 
             await member.remove_roles(role)

@@ -11,6 +11,11 @@ class sandbox(commands.Cog, name="Sandbox"):
         await ctx.message.delete()
         await ctx.channel.send('https://cdn.discordapp.com/attachments/527487652979802132/748879614046109766/SmartSelect_20200828-205239_Discord.jpg')
 
+    @commands.Cog.listener()
+    async def on_message(self, msg: discord.Message):
+        if "ramen" in msg.content.lower():
+            await msg.channel.send('https://i.imgur.com/gOaXCNQ.png')
+
     @commands.command(aliases=['vcl'])
     async def voice_channel_list(self, ctx: commands.Context):
         channels = ctx.guild.voice_channels
@@ -26,7 +31,7 @@ class sandbox(commands.Cog, name="Sandbox"):
         m = await ctx.channel.send(msg, tts=True)
         await m.delete()
 
-    async def audit_log(self, ctx):
+    def audit_log(self, ctx):
         # Can we get onAuditLog event?
         print('not implemented')
 

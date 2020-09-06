@@ -24,6 +24,7 @@ class mainCommands(commands.Cog, name="Main"):
     @commands.command()
     @commands.guild_only()
     async def say(self, ctx, *, message):
+    # use mention_everyone and mentions instead
         if "@" in message:
             await ctx.send("I won't say it...")
             if "@everyone" in message:
@@ -35,6 +36,7 @@ class mainCommands(commands.Cog, name="Main"):
     @commands.command()
     @commands.guild_only()
     async def sayd(self, ctx, *, message):
+        # use mention_everyone and mentions instead
         await ctx.message.delete(delay=None)
         if "@" in message:
             await ctx.send("I won't say it...")
