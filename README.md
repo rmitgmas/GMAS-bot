@@ -1,6 +1,6 @@
-<img src="https://i.imgur.com/ku9a1lY.png" alt="mypy logo" width="300px"/>
+<img src="https://i.imgur.com/n5Gbtz4.png" alt="mypy logo" width="300px"/>
 
-Bot created and maintained for GMAS
+Bot created and maintained by and for GMAS
 ===================================
 Thanks FriedRice#1686, for letting us do this.
 
