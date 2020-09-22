@@ -3,7 +3,6 @@ from discord.ext import commands, tasks
 import json
 
 class roles(commands.Cog, name="Roles"):
-    
     def __init__(self, bot):
         self.bot=bot
 
@@ -14,7 +13,8 @@ class roles(commands.Cog, name="Roles"):
         return commands.check(predicate)
 
     async def get_roles_channel(self):
-        """ Return the ID of the channel where roles are posted
+        """ 
+        Return the ID of the channel where roles are posted
         """
         with open('config.json', 'r', encoding='utf-8') as f:
             config = json.load(f)
@@ -24,6 +24,14 @@ class roles(commands.Cog, name="Roles"):
         # Maybe automatically populated this file one day
         with open('roles/roles_description.json', 'r', encoding='utf-8') as f:
             return json.load(f)
+    
+    async def get_unassignable_roles(self):
+        """ 
+        Return the ID of the channel where roles are posted
+        """
+        with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            return config['unassignable_roles']
     
     async def role_reaction_check(self, guild):
         """
@@ -58,14 +66,12 @@ class roles(commands.Cog, name="Roles"):
             f.truncate()
         await ctx.message.add_reaction('✅')
 
-   
-
-    @commands.command(aliases=['srd', 'setroledescription','rd'], hidden=True)
+    @commands.command(aliases=['srd', 'setroledescription','rd'], hidden=True, help="Set role description using g!srd `<role name>`=`<role description>`")
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def set_roles_description(self, ctx, *, args):
         args_list = args.split('=')
         if(len(args_list)< 2):
-            await ctx.send("Please enter a description for the role")
+            await ctx.send("Please enter a description for the role, seperated by a `=`.\n**g!srd `<role name>`=`<role description>`**")
             return
         
         if args_list[0].strip() not in [r.name for r in ctx.guild.roles]:
@@ -78,8 +84,14 @@ class roles(commands.Cog, name="Roles"):
             f.seek(0)
             json.dump(roles, f, indent=4)
             f.truncate()
-        await self.update_role_list_embed(ctx.guild)
-        await ctx.message.add_reaction('✅')
+
+        try:
+            await self.update_role_list_embed(ctx.guild)
+            await ctx.message.add_reaction('✅')
+        except Exception as e:
+            print(f'error when updating embed: {e}')
+            await ctx.message.add_reaction('❌')
+
 
 
     async def role_list(self, guild: discord.Guild):
@@ -93,8 +105,9 @@ class roles(commands.Cog, name="Roles"):
 
         description_list = await self.get_roles_description()
         for role in reversed(display_roles):
-            role_description = description_list[role.name]
-            embed.add_field(name=role.name, value=role_description, inline=True)
+            if role.name in description_list:
+                role_description = description_list[role.name]
+                embed.add_field(name=role.name, value=role_description, inline=True)
         return embed
 
     async def update_role_list_embed(self, guild):
@@ -110,6 +123,7 @@ class roles(commands.Cog, name="Roles"):
 
     async def role_reactions(self, guild: discord.Guild):
         role_channel_id = await self.get_roles_channel()
+        unassignable_roles = await self.get_unassignable_roles()
         # could improve by check if already existing role messages exists
         # and only send messages with new roles, that way when a role changes position
         # instead of deleting all then resending all roles, we could delete up to the
@@ -117,14 +131,17 @@ class roles(commands.Cog, name="Roles"):
         roles = guild.roles
         channel: discord.TextChannel = guild.get_channel(role_channel_id)
         i = roles.index(guild.me.top_role)
+
+        # Have a not_assignable_role_list and use gr.name not in 
         assignable_roles = [gr for gr in roles[:i] if gr.managed is False \
             and gr.name != "@everyone"\
             and gr.name != "bots"\
             and gr.name != "Alumni"\
-            ]
+            and gr.name not in unassignable_roles]
+
         for role in reversed(assignable_roles):
-                role_msg = await channel.send(f"**`{role.name}`**")
-                await role_msg.add_reaction('✅')
+            role_msg = await channel.send(f"**`{role.name}`**")
+            await role_msg.add_reaction('✅')
    
     async def get_role_messages(self, guild):
         role_channel_id = await self.get_roles_channel()
@@ -223,6 +240,7 @@ class roles(commands.Cog, name="Roles"):
         channel = guild.get_channel(role_channel_id)
         
         async for message in channel.history(limit=200):
+            # this line gets repeated a lot
             no_markdown_content = message.content.replace('*', '').replace('`','')
             
             if message.author.bot and len(message.reactions) and no_markdown_content == role.name:
@@ -298,7 +316,8 @@ class roles(commands.Cog, name="Roles"):
             # await m.delete(delay=3)
 
     @commands.command(aliases=["addrole", "ar", "r"])
-    async def role(self, ctx, *, role: discord.Role = None):
+    async def addRole(self, ctx, *, role: discord.Role = None):
+        unassignable_roles = await self.get_unassignable_roles()
 
         guild_roles = ctx.guild.roles
         i = guild_roles.index(ctx.guild.me.top_role)
@@ -314,19 +333,22 @@ class roles(commands.Cog, name="Roles"):
             return
 
         user = ctx.message.author
+        print(unassignable_roles)
         try:
-            if role in assignable_roles:
+            if role in assignable_roles and not role.name in unassignable_roles:
                 await user.add_roles(role)
                 await ctx.message.add_reaction('✅')
             else:
-                raise Exception("Role not assignable")
+                raise Exception(f"Role `{role.name}` is not assignable")
         except Exception as e:
-            print("Couldn't add role.\n" + e)
+            print(f"Couldn't add role -> {e}")
             await ctx.message.add_reaction('❌')
+            await ctx.channel.send(e)
 
     @commands.command(aliases=["removerole", "rr"])
     async def removeRole(self, ctx, *, role: discord.Role = None):
         user = ctx.message.author
+        unassignable_roles = await self.get_unassignable_roles()
 
         if role is None:
             roles_str = [r.name for r in user.roles if r.name != "@everyone"]
@@ -337,13 +359,18 @@ class roles(commands.Cog, name="Roles"):
 
         if role in user.roles:
             try:
-                await user.remove_roles(role)
+                if role.name not in unassignable_roles:
+                    await user.remove_roles(role)
+                    await ctx.message.add_reaction('✅')
+                else:
+                    raise Exception(f"Role `{role.name}` is not unassignable")
             except Exception as e:
-                print(e)
+                print(f"Couldn't remove role -> {e}")
                 await ctx.message.add_reaction('❌')
+                await ctx.channel.send(e)
                 return
-            await ctx.message.add_reaction('✅')
         else:
+            await ctx.channel.send(f"You don't have the `{role.name}` role")
             print("User doesn't have specified role")
 
 def setup(bot):

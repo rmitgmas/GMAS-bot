@@ -25,7 +25,7 @@ class mainCommands(commands.Cog, name="Main"):
     @commands.guild_only()
     async def say(self, ctx, *, message):
     # use mention_everyone and mentions instead
-        if "@" in message:
+        if ctx.message.mentions or ctx.message.mention_everyone or ctx.message.role_mentions:
             await ctx.send("I won't say it...")
             if "@everyone" in message:
                 await ctx.author.edit(nick=f"{ctx.author.nick[:9]} [TRIED TO @everyone]😂", reason="[TRIED TO PING EVERYONE] 😂")
@@ -35,10 +35,10 @@ class mainCommands(commands.Cog, name="Main"):
     #Repeat whatever AND delete
     @commands.command()
     @commands.guild_only()
-    async def sayd(self, ctx, *, message):
+    async def sayd(self, ctx, *, message: discord.Message):
         # use mention_everyone and mentions instead
         await ctx.message.delete(delay=None)
-        if "@" in message:
+        if ctx.message.mentions or ctx.message.mention_everyone or ctx.message.role_mentions:
             await ctx.send("I won't say it...")
             if "@everyone" in message:
                 await ctx.author.edit(nick=f"{ctx.author.nick[:9]} [TRIED TO @everyone]😂", reason="[TRIED TO PING EVERYONE] 😂")

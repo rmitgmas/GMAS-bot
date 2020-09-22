@@ -41,8 +41,8 @@ class generalChat(commands.Cog):
 
     #Send a welcome message to general chat
     @commands.Cog.listener()
-    async def on_member_join(self, member):
-        
+    async def on_member_join(self, member: discord.Member):
+       
         with open('config.json', 'r') as f:
             serverConfig = json.load(f)
             generalChannel = serverConfig["general"]
@@ -84,7 +84,10 @@ class generalChat(commands.Cog):
             rolesChannel = self.bot.get_channel(rolesChannelId)
             rulesChannel = self.bot.get_channel(rulesChannelId)
             
-            await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {rulesChannel.mention or 'the server rules'} and {rolesChannel.mention or 'the roles channel'}, and enjoy your stay!\n{welcome_role.mention}")
+            if member.bot:
+                await channel.send(f"A new bot has joined the server! 🤖 Welcome {member.mention} 🤖")
+            else:
+                await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {rulesChannel.mention or 'the server rules'} and {rolesChannel.mention or 'the roles channel'}, and enjoy your stay!\n{welcome_role.mention}")
               
             
 def setup(bot):
