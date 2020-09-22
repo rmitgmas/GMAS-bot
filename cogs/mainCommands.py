@@ -35,7 +35,7 @@ class mainCommands(commands.Cog, name="Main"):
     #Repeat whatever AND delete
     @commands.command()
     @commands.guild_only()
-    async def sayd(self, ctx, *, message: discord.Message):
+    async def sayd(self, ctx, *, message):
         # use mention_everyone and mentions instead
         await ctx.message.delete(delay=None)
         if ctx.message.mentions or ctx.message.mention_everyone or ctx.message.role_mentions:
