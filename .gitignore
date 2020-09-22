@@ -7,3 +7,5 @@ logs
 # Gotta keep those token from being leaked :)
 token.txt
 users.json
+
+*.log
