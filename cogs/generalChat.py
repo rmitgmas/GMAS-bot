@@ -9,30 +9,30 @@ class generalChat(commands.Cog):
     def __init__(self, bot):
         self.bot=bot
 
-    #Set general chat
+    #Set welcome chat
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)   
-    async def setgeneral(self, ctx, arg : discord.TextChannel):
+    async def setwelcome(self, ctx, arg : discord.TextChannel):
         with open('config.json', 'r') as f:
             serverConfig = json.load(f)
 
-        serverConfig["general"] = arg.id
+        serverConfig["welcome"] = arg.id
 
         with open('config.json', 'w') as f:
             json.dump(serverConfig, f, indent=4)
 
         await ctx.message.add_reaction('✅')
 
-    #Remove set general chat
+    #Remove set welcome chat
     @commands.command()
     @commands.guild_only()
     @commands.has_permissions(administrator=True)   
-    async def cleargeneral(self, ctx):
+    async def clearwelcome(self, ctx):
         with open('config.json', 'r') as f:
             serverConfig = json.load(f)
 
-        serverConfig["general"] = None
+        serverConfig["welcome"] = None
 
         with open('config.json', 'w') as f:
             json.dump(serverConfig, f, indent=4)
@@ -45,7 +45,7 @@ class generalChat(commands.Cog):
        
         with open('config.json', 'r') as f:
             serverConfig = json.load(f)
-            generalChannel = serverConfig["general"]
+            generalChannel = serverConfig["welcome"]
             rulesChannelId = serverConfig["rules"]
             rolesChannelId = serverConfig["rolesChannelId"]
             # member.guild might just work actually
@@ -62,7 +62,7 @@ class generalChat(commands.Cog):
 
             channel = guild.system_channel
             if channel is None:
-                channel = self.bot.get_channel(serverConfig["general"])
+                channel = self.bot.get_channel(serverConfig["welcome"])
 
             with open('random.json', 'r') as f:
                 randomised = json.load(f)
@@ -73,12 +73,12 @@ class generalChat(commands.Cog):
                 print("Couldn't find channel with ID {} for this server! \nTrying by name #general".format(serverConfig['general']))
                 channels = self.bot.get_guild(serverConfig['guildId']).channels
                 try:
-                    channel = next(c for c in channels if c.name is "general")
+                    channel = next(c for c in channels if c.name is "welcome")
                 except StopIteration:
-                    print("No channel #general! \nNo greetings for {} :((".format(member.name))
+                    print("No channel #welcome! \nNo greetings for {} :((".format(member.name))
                 # could also take the guild id as the channel id, since the default channel of a guild has the same id as the guild
                 if channel is None:
-                    print("Couldn't find general channel")
+                    print("Couldn't find welcome channel")
                     return
 
             rolesChannel = self.bot.get_channel(rolesChannelId)
