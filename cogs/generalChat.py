@@ -49,10 +49,8 @@ class generalChat(commands.Cog):
             rulesChannelId = serverConfig["rules"]
             rolesChannelId = serverConfig["rolesChannelId"]
             # member.guild might just work actually
-            guild = self.bot.get_guild(serverConfig['guildId'])
+            guild: discord.Guild = self.bot.get_guild(serverConfig['guildId'])
             welcome_role = guild.get_role(serverConfig['welcomesquad'])
-
-
         if generalChannel is not None:
             with open("users.json", "r") as f:
                 users = json.load(f)
@@ -62,7 +60,9 @@ class generalChat(commands.Cog):
             with open("users.json", "w") as f:
                 json.dump(users, f)
 
-            channel = self.bot.get_channel(serverConfig["general"])
+            channel = guild.system_channel
+            if channel is None:
+                channel = self.bot.get_channel(serverConfig["general"])
 
             with open('random.json', 'r') as f:
                 randomised = json.load(f)
