@@ -37,13 +37,13 @@ class mainCommands(commands.Cog, name="Main"):
     @commands.guild_only()
     async def sayd(self, ctx, *, message):
         # use mention_everyone and mentions instead
-        await ctx.message.delete(delay=None)
         if ctx.message.mentions or ctx.message.mention_everyone or ctx.message.role_mentions:
             await ctx.send("I won't say it...")
             if "@everyone" in message:
                 await ctx.author.edit(nick=f"{ctx.author.nick[:9]} [TRIED TO @everyone]😂", reason="[TRIED TO PING EVERYONE] 😂")
         else:
             await ctx.send(message)
+        await ctx.message.delete(delay=None)
 
     @commands.command(aliases=['d'])
     @commands.is_owner()

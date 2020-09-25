@@ -92,8 +92,6 @@ class roles(commands.Cog, name="Roles"):
             print(f'error when updating embed: {e}')
             await ctx.message.add_reaction('❌')
 
-
-
     async def role_list(self, guild: discord.Guild):
         roles = guild.roles
         i = roles.index(guild.me.top_role)
