@@ -15,6 +15,8 @@ class sandbox(commands.Cog, name="Sandbox"):
     async def on_message(self, msg: discord.Message):
         if "ramen" in msg.content.lower():
             await msg.channel.send('https://i.imgur.com/gOaXCNQ.png')
+        if "mum" in msg.content.lower():
+            await msg.channel.send('I\'m sorry, did you mean mum?')
 
     @commands.command(aliases=['vcl'])
     async def voice_channel_list(self, ctx: commands.Context):
