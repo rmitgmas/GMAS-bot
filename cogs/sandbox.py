@@ -13,6 +13,8 @@ class sandbox(commands.Cog, name="Sandbox"):
 
     @commands.Cog.listener()
     async def on_message(self, msg: discord.Message):
+        if msg.author.bot:
+            return
         if "ramen" in msg.content.lower():
             await msg.channel.send('https://i.imgur.com/gOaXCNQ.png')
         if "mum" in msg.content.lower():
