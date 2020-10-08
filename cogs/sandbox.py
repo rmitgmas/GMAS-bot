@@ -17,7 +17,7 @@ class sandbox(commands.Cog, name="Sandbox"):
             return
         if "ramen" in msg.content.lower():
             await msg.channel.send('https://i.imgur.com/gOaXCNQ.png')
-        if "mom" in msg.content.lower():
+        if "mom " in msg.content.lower() and msg.author.id == 180990269355851776:
             await msg.channel.send('I\'m sorry, did you mean mum?')
 
     @commands.command(aliases=['vcl'])
