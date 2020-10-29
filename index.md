@@ -1,6 +1,6 @@
-## Welcome to GitHub Pages
+## GMAS-chan is the official bot of RMIT's anime club
 
-You can use the [editor on GitHub](https://github.com/femto45/GMAS-bot/edit/gh-pages/index.md) to maintain and preview the content for your website in Markdown files.
+SAMPLE TEXT
 
 Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
 
