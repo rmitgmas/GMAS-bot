@@ -74,6 +74,8 @@ class roles(commands.Cog, name="Roles"):
             print("Emoji has no role attached")
             return None
         role: discord.Role = discord.utils.get(guild.roles, name=role_name)
+        if role is None:
+            print(f"Role `{role_name}` couldn't be found to be added/removed, check the name in roles_const.json")
         return role
 
     async def role_list(self, guild: discord.Guild):
