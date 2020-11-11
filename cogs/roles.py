@@ -63,6 +63,14 @@ class roles(commands.Cog, name="Roles"):
 
         return role_message
 
+    async def get_role_from_reaction(self, guild, role_message, payload) -> discord.Role:
+        roles = await self.get_roles_from_role_message(guild)
+        role_name = roles[str(payload.emoji)]
+        if not role_name:
+            print("Emoji has no role attached")
+            return None
+        role: discord.Role = discord.utils.get(guild.roles, name=role_name)
+        return role
 
     async def role_list(self, guild: discord.Guild):
         roles = guild.roles
@@ -108,6 +116,8 @@ class roles(commands.Cog, name="Roles"):
         Prints the role message to self assign role, each role having a custom emoji assigned to it (set in role_const.json) 
         """
         guild: discord.Guild = ctx.guild
+        # If the role message already has reaction (maybe check only on startup), assign the roles of emote ppl reacted to
+        # this is useful if they reacted while the bot was down
 
         dup = await self.find_role_message(guild)
         if dup:
@@ -209,21 +219,30 @@ class roles(commands.Cog, name="Roles"):
     #region Listeners
     @commands.Cog.listener()
     async def on_guild_role_create(self, role):
-        print("Role Created: Function not implemented")
+        roles = await self.get_roles_from_role_message(role.guild)
+        print(roles)
         #TODO: edit the role message 
 
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
         print("Role Deleted: Function not implemented")
+        print(role.guild)
+        roles = await self.get_roles_from_role_message(role.guild)
         #TODO: edit the role message 
      
         
     @commands.Cog.listener()
     async def on_guild_role_update(self, before, after):
+        roles = await self.get_roles_from_role_message(before.guild)
         print("Role Updated: Function not implemented")
         #TODO: edit the role message 
 
-    async def get_role_from_reaction(self, guild, role_message, payload) -> discord.Role:
+    async def get_roles_from_role_message(self, guild) -> dict:
+        role_message = await self.find_role_message(guild)
+        if not role_message:
+            print("Can't get roles from role message")
+            return
+
         roles = role_message.content.split('\n')
         roles = list(roles)[2:]
         def split_text(role_message):
@@ -233,14 +252,7 @@ class roles(commands.Cog, name="Roles"):
             return m
         roles = map(split_text, roles)
         roles = dict(roles)
-        print(roles)
-        print(payload.emoji)
-        role_name = roles[str(payload.emoji)]
-        if not role_name:
-            print("Emoji has no role attached")
-            return None
-        role: discord.Role = discord.utils.get(guild.roles, name=role_name)
-        return role
+        return roles
 
     @commands.Cog.listener()
     async def on_raw_reaction_add(self, payload: discord.RawReactionActionEvent):
@@ -266,6 +278,7 @@ class roles(commands.Cog, name="Roles"):
             unassignable_roles = await self.get_unassignable_roles()
             if role.name not in unassignable_roles:
                 await member.add_roles(role)
+                print(f"Added {str(role)} to user {str(member)}")
             else:
                 print("Role is unassignable")
 
@@ -295,6 +308,7 @@ class roles(commands.Cog, name="Roles"):
             unassignable_roles = await self.get_unassignable_roles()
             if role.name not in unassignable_roles:
                 await member.remove_roles(role)
+                print(f"Removed role {str(role)} to user {str(member)}")
             else:
                 print("Role is unassignable")
     #endregion Listeners
