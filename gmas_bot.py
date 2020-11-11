@@ -98,7 +98,7 @@ async def on_message(message):
 
     channel = message.channel
 
-    if message.author == client.user:
+    if message.author == bot.user:
         return
 
     has_attchmt = message.attachments and len(message.attachments)
