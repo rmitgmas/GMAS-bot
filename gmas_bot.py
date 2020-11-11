@@ -27,11 +27,13 @@ handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w'
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-client = discord.Client()
 token = open(r"token.txt", "r").read()
+intents = discord.Intents.default()
+intents.members = True 
+bot = commands.Bot(command_prefix="g!", intents=intents)
 
-bot = commands.Bot(command_prefix="g!")
-# bot.remove_command("help")
+last_msg = None
+last_msg1 = None
 
 @bot.event
 async def on_ready():

@@ -1,5 +1,31 @@
 { 
     "unassignable_roles": [
-        "Server Booster"
-    ]
+        "@everyone",
+        "Server Booster",
+        "bots",
+        "Elders"
+    ],
+    "role_emojis": {
+        "Alcoholics": "vodka:734032359334346773",
+        "Hackers": "💻",
+        "Beat Addicts": "🎶",
+        "Creators": "🖌️",
+        "DJ": "🎧",
+        "Traveller": "💠",
+        "Dungeonchads": "🎲",
+        "Waifu Rollers": "🎰",
+        "Simps": "simp:734033729294696479",
+        "Elders": "👴",
+        "Party Game Gang": "🎉",
+        "Moon Rune Decoders": "㊗️",
+        "Hot for Robots": "boner:592327226494550027",
+        "Hard Stuck Inters": "☠️",
+        "Gigahertz": "🤓",
+        "Block Meisters": "🕋",
+        "Gamer Paladins": "🎮",
+        "Anime Junkies": "🎞️",
+        "Welcome Squad": "wave:763578998231007232"
+
+    }
+
 }
