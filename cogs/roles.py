@@ -36,7 +36,7 @@ class roles(commands.Cog, name="Roles"):
             content = json.load(f)
             return content['unassignable_roles']
     
-    async def find_role_message(self, guild):
+    async def find_role_message(self, guild) -> discord.Message:
         """
         Finds the role message from the roles channel, and return the discord.Message instance of it
         """
@@ -65,7 +65,11 @@ class roles(commands.Cog, name="Roles"):
 
     async def get_role_from_reaction(self, guild, role_message, payload) -> discord.Role:
         roles = await self.get_roles_from_role_message(guild)
-        role_name = roles[str(payload.emoji)]
+        try:
+            role_name = roles[str(payload.emoji)]
+        except KeyError:
+            print("The reaction isn't a valid role/emoji pair")
+            return
         if not role_name:
             print("Emoji has no role attached")
             return None
@@ -145,7 +149,7 @@ class roles(commands.Cog, name="Roles"):
             try:
                 if role_emojis[r]:
                     if ':' in role_emojis[r]:
-                        m_string += f"<:{role_emojis[r]}> : `{r}`\n"
+                        m_string += f"{role_emojis[r]} : `{r}`\n"
                     else:
                         m_string += f"{role_emojis[r]} : `{r}`\n"
                     emojis.append(role_emojis[r])
@@ -162,6 +166,46 @@ class roles(commands.Cog, name="Roles"):
                 await m.add_reaction(f"{e}")
  
 
+    @commands.command(aliases=['changeRoleEmoji', 'cre',' changeroleemoji'], hidden=True)
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    async def change_role_emoji(self, ctx, *, text):
+        texts = text.split('=')
+        if(len(texts)< 2):
+            await ctx.send("Syntax: role_name=emoji")
+            return
+        
+        role_name = texts[0]
+        emoji = texts[1]
+
+        role_message =  await self.find_role_message(ctx.guild)
+        with open('roles/roles_const.json', 'r+', encoding='utf-8') as f:
+            content = json.load(f)
+
+            if emoji in content['role_emojis'].values():
+                await ctx.send("This emoji is already used by another role, please use a different one.")
+                return
+            try:
+                old_emoji = content['role_emojis'][role_name]
+                content['role_emojis'][role_name] = emoji
+                print(old_emoji)
+                print(content['role_emojis'])
+            except KeyError as e:
+                await ctx.send(f"Couldn't find role `{role_name}`")
+                print(e)
+                return
+            f.seek(0)
+            json.dump(content, f, indent=4, ensure_ascii=False)
+            f.truncate()
+            # replace the text somehow
+           
+            print(f"Changing {old_emoji} to {emoji} for role `{role_name}`")
+            # replace based on role in that line
+            new_content = role_message.content.replace(old_emoji, emoji, 1)
+            await role_message.remove_reaction(old_emoji, ctx.me)
+            await role_message.add_reaction(emoji)
+            
+
+            await role_message.edit(content=new_content)
 
     @commands.command(aliases=['src', 'setrolechannel',' setroleschannel'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
@@ -252,6 +296,7 @@ class roles(commands.Cog, name="Roles"):
             return m
         roles = map(split_text, roles)
         roles = dict(roles)
+        print(roles)
         return roles
 
     @commands.Cog.listener()
@@ -308,7 +353,7 @@ class roles(commands.Cog, name="Roles"):
             unassignable_roles = await self.get_unassignable_roles()
             if role.name not in unassignable_roles:
                 await member.remove_roles(role)
-                print(f"Removed role {str(role)} to user {str(member)}")
+                print(f"Removed role {str(role)} from user {str(member)}")
             else:
                 print("Role is unassignable")
     #endregion Listeners
