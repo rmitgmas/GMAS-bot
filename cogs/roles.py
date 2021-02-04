@@ -62,14 +62,16 @@ class roles(commands.Cog, name="Roles"):
             print("Couldn't find role message")
 
         return role_message
+        
 
     async def get_role_from_reaction(self, guild, role_message, payload) -> discord.Role:
         roles = await self.get_roles_from_role_message(guild)
+        print(roles)
         try:
             role_name = roles[str(payload.emoji)]
         except KeyError:
             print("The reaction isn't a valid role/emoji pair")
-            return
+            raise
         if not role_name:
             print("Emoji has no role attached")
             return None
@@ -239,7 +241,7 @@ class roles(commands.Cog, name="Roles"):
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def set_roles_description(self, ctx, *, args):
         args_list = args.split('=')
-        if(len(args_list)< 2):
+        if(len(args_list) < 2):
             await ctx.send("Please enter a description for the role, seperated by a `=`.\n**g!srd `<role name>`=`<role description>`**")
             return
         
@@ -289,7 +291,7 @@ class roles(commands.Cog, name="Roles"):
             print("Can't get roles from role message")
             return
 
-        roles = role_message.content.split('\n')
+        roles = [r for r in role_message.content.split('\n') if ' :' in r]
         roles = list(roles)[2:]
         def split_text(role_message):
             m = role_message.rsplit(":", 1)
@@ -298,7 +300,7 @@ class roles(commands.Cog, name="Roles"):
             return m
         roles = map(split_text, roles)
         roles = dict(roles)
-        print(roles)
+        # print(roles)
         return roles
 
     @commands.Cog.listener()
@@ -320,8 +322,11 @@ class roles(commands.Cog, name="Roles"):
 
         if channel.id == role_channel_id :
             if payload.message_id == role_message.id:
-                role = await self.get_role_from_reaction(guild, role_message, payload)
-
+                try:
+                    role = await self.get_role_from_reaction(guild, role_message, payload)
+                except KeyError:
+                   print(f"Role isn't in the role message") 
+                   return
             unassignable_roles = await self.get_unassignable_roles()
             if role.name not in unassignable_roles:
                 await member.add_roles(role)
@@ -350,8 +355,11 @@ class roles(commands.Cog, name="Roles"):
 
         if channel.id == role_channel_id :
             if payload.message_id == role_message.id:
-                role = await self.get_role_from_reaction(guild, role_message, payload)
-
+                try:
+                    role = await self.get_role_from_reaction(guild, role_message, payload)
+                except KeyError:
+                   print(f"Role isn't in the role message") 
+                   return
             unassignable_roles = await self.get_unassignable_roles()
             if role.name not in unassignable_roles:
                 await member.remove_roles(role)
