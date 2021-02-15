@@ -51,7 +51,7 @@ class roles(commands.Cog, name="Roles"):
 
         role_message = False
         async for message in channel.history(limit=200).filter(is_bot):
-            if "React to give yourself a role" in message.content and message.author.bot:
+            if "React to give yourself a role:" in message.content and message.author.bot:
                 # found the role message :D
                 role_message = message
                 break
@@ -153,12 +153,13 @@ class roles(commands.Cog, name="Roles"):
         for r in role_names:
             try:
                 if role_emojis[r]:
+                    role_n = role_emojis[r].replace('\u200d', '')
                     if ':' in role_emojis[r]:
-                        m_string += f"{role_emojis[r]} : `{r}`\n"
+                        m_string += f"{role_n} : `{r}`\n"
                     else:
-                        m_string += f"{role_emojis[r]} : `{r}`\n"
-                    emojis.append(role_emojis[r])
-                    print(r, role_emojis[r])
+                        m_string += f"{role_n} : `{r}`\n"
+                    emojis.append(str(role_n))
+                    print(r, role_n)
             except KeyError as e:
                 print(f"Role `{r}` has no emoji set")
                 continue
@@ -299,7 +300,7 @@ class roles(commands.Cog, name="Roles"):
             return
 
         roles = [r for r in role_message.content.split('\n') if ' :' in r]
-        roles = list(roles)[2:]
+        print(roles)
         # roles = list(roles)[2:]
         def split_text(role_message):
             m = role_message.rsplit(":", 1)
