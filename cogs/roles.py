@@ -160,6 +160,7 @@ class roles(commands.Cog, name="Roles"):
                     print(r, role_emojis[r])
             except KeyError as e:
                 print(f"Role `{r}` has no emoji set")
+                continue
 
         m: discord.Message = await roles_channel.send(m_string)
 
