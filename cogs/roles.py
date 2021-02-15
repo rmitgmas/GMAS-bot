@@ -165,7 +165,7 @@ class roles(commands.Cog, name="Roles"):
 
         for e in emojis:
             if ':' in e:
-                await m.add_reaction(f"<:{e}>")
+                await m.add_reaction(f"<{e}>")
             else:
                 await m.add_reaction(f"{e}")
  
