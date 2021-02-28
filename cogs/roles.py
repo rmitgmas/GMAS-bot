@@ -51,7 +51,7 @@ class roles(commands.Cog, name="Roles"):
 
         role_message = False
         async for message in channel.history(limit=200).filter(is_bot):
-            if "React to give yourself a role" in message.content and message.author.bot:
+            if "React to give yourself a role:" in message.content and message.author.bot:
                 # found the role message :D
                 role_message = message
                 break
@@ -139,25 +139,27 @@ class roles(commands.Cog, name="Roles"):
 
         i = roles.index(ctx.guild.me.top_role)
         # maybe use role id and not name?
-        role_names = [r.name for r in roles[:i] if r.managed == False and r.name not in unassignable_roles]
 
         role_emojis = []
         with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
             content = json.load(f)
             role_emojis = content['role_emojis']
 
-        m_string = "React to give yourself a role\n\n"
+        role_names = [r.name for r in roles[:i] if r.managed == False and r.name not in unassignable_roles and r.name in role_emojis]
+        
+        m_string = "React to give yourself a role:\n\n"
         emojis = []
-        print(guild.emojis)
+        # print(guild.emojis)
         for r in role_names:
             try:
                 if role_emojis[r]:
+                    role_n = role_emojis[r].replace('\u200d', '')
                     if ':' in role_emojis[r]:
-                        m_string += f"{role_emojis[r]} : `{r}`\n"
+                        m_string += f"{role_n} : `{r}`\n"
                     else:
-                        m_string += f"{role_emojis[r]} : `{r}`\n"
-                    emojis.append(role_emojis[r])
-                    print(r, role_emojis[r])
+                        m_string += f"{role_n} : `{r}`\n"
+                    emojis.append(str(role_n))
+                    print(r, role_n)
             except KeyError as e:
                 print(f"Role `{r}` has no emoji set")
                 continue
@@ -165,11 +167,16 @@ class roles(commands.Cog, name="Roles"):
         m: discord.Message = await roles_channel.send(m_string)
 
         for e in emojis:
-            if ':' in e:
-                await m.add_reaction(f"<{e}>")
-            else:
-                await m.add_reaction(f"{e}")
- 
+            print(f'role is {e}')
+            try:
+                if ':' in e:
+                    await m.add_reaction(f"<{e}>")
+                else:
+                    await m.add_reaction(f"{e}")
+            except:
+                print(f"Couldn't react with this emoji: {e}")
+                continue
+
 
     @commands.command(aliases=['changeRoleEmoji', 'cre',' changeroleemoji'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
@@ -293,7 +300,8 @@ class roles(commands.Cog, name="Roles"):
             return
 
         roles = [r for r in role_message.content.split('\n') if ' :' in r]
-        roles = list(roles)[2:]
+        print(roles)
+        # roles = list(roles)[2:]
         def split_text(role_message):
             m = role_message.rsplit(":", 1)
             m[0] = m[0].strip()
