@@ -27,6 +27,8 @@ class mainCommands(commands.Cog, name="Main"):
     # use mention_everyone and mentions instead
         if ctx.message.mentions or ctx.message.mention_everyone or ctx.message.role_mentions:
             await ctx.send("I won't say it...")
+        elif "@here" in message:
+            await ctx.author.edit(nick=f"{ctx.author.nick[:9]} [TRIED TO @everyone]😂", reason="[TRIED TO PING EVERYONE] 😂")
         elif "@everyone" in message:
             await ctx.author.edit(nick=f"{ctx.author.nick[:9]} [TRIED TO @everyone]😂", reason="[TRIED TO PING EVERYONE] 😂")
         else:
@@ -39,6 +41,8 @@ class mainCommands(commands.Cog, name="Main"):
         # use mention_everyone and mentions instead
         if ctx.message.mentions or ctx.message.mention_everyone or ctx.message.role_mentions:
             await ctx.send("I won't say it...")
+        elif "@here" in message:
+            await ctx.author.edit(nick=f"{ctx.author.nick[:9]} [TRIED TO @everyone]😂", reason="[TRIED TO PING EVERYONE] 😂")
         elif "@everyone" in message:
             await ctx.author.edit(nick=f"{ctx.author.nick[:9]} [TRIED TO @everyone]😂", reason="[TRIED TO PING EVERYONE] 😂")
         else:
