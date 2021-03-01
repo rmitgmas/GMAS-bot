@@ -181,6 +181,11 @@ class roles(commands.Cog, name="Roles"):
     @commands.command(aliases=['changeRoleEmoji', 'cre',' changeroleemoji'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def change_role_emoji(self, ctx, *, text):
+        """
+        Change the emoji attached to a role to self assign it.
+
+        To use type: g!changeRoleEmoji roleName=newEmoji
+        """
         texts = text.split('=')
         if(len(texts) < 2):
             await ctx.send("Syntax: role_name=emoji")
