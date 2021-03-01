@@ -182,7 +182,7 @@ class roles(commands.Cog, name="Roles"):
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def change_role_emoji(self, ctx, *, text):
         texts = text.split('=')
-        if(len(texts)< 2):
+        if(len(texts) < 2):
             await ctx.send("Syntax: role_name=emoji")
             return
         
@@ -213,7 +213,7 @@ class roles(commands.Cog, name="Roles"):
             print(f"Changing {old_emoji} to {emoji} for role `{role_name}`")
             # replace based on role in that line
             new_content = role_message.content.replace(old_emoji, emoji, 1)
-            await role_message.remove_reaction(old_emoji, ctx.me)
+            await role_message.clear_reaction(old_emoji)
             await role_message.add_reaction(emoji)
             
 

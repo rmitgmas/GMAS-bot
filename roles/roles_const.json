@@ -1,0 +1,34 @@
+{
+    "unassignable_roles": [
+        "@everyone",
+        "Server Booster",
+        "bots",
+        "Hackers",
+        "Elders"
+    ],
+    "role_emojis": {
+        "Alcoholics": "<:vodka:734032359334346773>",
+        "Hackers": "💻",
+        "Beat Addicts": "🎶",
+        "Creators": "🖌️",
+        "Politics and History": "📜",
+        "Traveller": "<:threaten:763579984119070742>",
+        "Dungeonchads": "🎲",
+        "Waifu Rollers": "🎰",
+        "Simps": "<:simp:734033729294696479>",
+        "Elders": "👴",
+        "Party Game Gang": "🎉",
+        "Weeb Translators": "㊗️",
+        "Hot for Robots": "<:boner:592327226494550027>",
+        "Hard Stuck Inters": "<:m7:815157661552476192>",
+        "Gigahertz": "🤓",
+        "Minecrafters": "🏕️",
+        "Gamer Paladins": "🎮",
+        "Anime Junkies": "🎞️",
+        "Welcome Squad": "<:wave:763578998231007232>",
+        "he/him": "👨",
+        "she/her": "👩",
+        "they/them": "🙂‍",
+        "K-pop Fans": "🇰🇷"
+    }
+}
