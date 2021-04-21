@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
+import pytz
 
 class sandbox(commands.Cog, name="Sandbox"):
     """Do stuff with red orbs, the currency/points of the server"""
@@ -21,7 +22,7 @@ class sandbox(commands.Cog, name="Sandbox"):
             if msg.channel.id not in self.ramen_msg_time:
                 self.ramen_msg_time[msg.channel.id] = datetime.min
                 
-            if self.ramen_msg_time[msg.channel.id] < datetime.now() - timedelta(minutes=2):
+            if self.ramen_msg_time[msg.channel.id] < datetime.now(pytz.timezone('Australia/Melbourne')) - timedelta(minutes=2):
                 m = await msg.channel.send('https://i.imgur.com/gOaXCNQ.png')
                 self.ramen_msg_time[msg.channel.id] = m.created_at
             else:
