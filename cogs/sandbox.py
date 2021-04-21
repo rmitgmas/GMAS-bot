@@ -5,6 +5,8 @@ class sandbox(commands.Cog, name="Sandbox"):
     """Do stuff with red orbs, the currency/points of the server"""
     def __init__(self, bot):
         self.bot=bot
+        self.last_ramen_user_id = null
+        self.same_ramen_user_count = 0
     
     @commands.command(aliases=['jeffonlyfans'])
     async def jeff_onlyfans(self, ctx: commands.Context):
@@ -16,7 +18,14 @@ class sandbox(commands.Cog, name="Sandbox"):
         if msg.author.bot:
             return
         if "ramen" in msg.content.lower():
-            await msg.channel.send('https://i.imgur.com/gOaXCNQ.png')
+            if self.last_ramen_user_id == msg.author.id:
+                self.same_ramen_user_count += 1
+            else:
+                self.last_ramen_user_id = msg.author.id
+            if self.same_ramen_user_count < 3:
+                await msg.channel.send('https://i.imgur.com/gOaXCNQ.png')
+            else:
+                await msg.channel.send('Stop saying ramen you idiot!')
         if "mom" in msg.content.lower().split(' ') and msg.author.id == 180990269355851776:
             await msg.channel.send('I\'m sorry, did you mean mum?')
 
