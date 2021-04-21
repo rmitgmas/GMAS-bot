@@ -5,7 +5,7 @@ class sandbox(commands.Cog, name="Sandbox"):
     """Do stuff with red orbs, the currency/points of the server"""
     def __init__(self, bot):
         self.bot=bot
-        self.last_ramen_user_id = null
+        self.last_ramen_user_id = None
         self.same_ramen_user_count = 0
     
     @commands.command(aliases=['jeffonlyfans'])
