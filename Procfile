@@ -1,0 +1,1 @@
+worker: python gmas_bot.py
