@@ -1,13 +1,29 @@
+import string
+from typing import List
 import discord
-from discord.ext import commands, tasks
+from discord.ext import commands
 import json
 
 # TODO: command to add/remove unassignable roles
 # TODO: differentiate unassignable and unremovable roles?
-# TODO: TBA
-class roles(commands.Cog, name="Roles"):
-    def __init__(self, bot):
+# TODO: save role message in memory (and in a json in case bot goes down) and always use this reference. 
+# update it on message_edit() for that specific message id (that way we dont have to fetch for the role
+# message on every update)
+class roles(commands.Cog, name="Roles"): 
+
+    def __init__(self, bot: discord.Client):
         self.bot=bot
+        self.role_categories: dict = self.get_roles_categories()
+        self.roles = self.get_roles()
+        self.channel_id = self.get_roles_channel()
+
+        
+    def log(self, message: string):
+        print("Uncomment if we want to log roles activity")
+        # with open("logs/roleActivity.txt", "a+", encoding="utf-8") as f:
+        #     time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        #     f.write(f"[{time}] {message}\n")
+        # print(f"{message}")
 
     def is_mod(self):
         async def predicate(ctx):
@@ -15,13 +31,33 @@ class roles(commands.Cog, name="Roles"):
             any(role.name in mod_roles for role in ctx.author.roles)
         return commands.check(predicate)
 
-    async def get_roles_channel(self):
+    def get_roles_channel(self):
         """ 
         Return the ID of the channel where roles are posted
         """
         with open('config.json', 'r', encoding='utf-8') as f:
             config = json.load(f)
             return config['rolesChannelId']
+    
+    def update_roles_channel(self, channel_id: int = None):
+        if channel_id is not None and type(channel_id) == int:
+            with open('config.json', 'r+', encoding='utf-8') as f:
+                content = json.load(f)    
+                content['rolesChannelId'] = channel_id
+                f.seek(0)
+                json.dump(content, f, indent=4, ensure_ascii=False)
+                f.truncate()
+            self.channel_id = channel_id
+
+
+    # move somehwere more global
+    async def get_guild(self):
+        """ 
+        Return the ID of the guild
+        """
+        with open('config.json', 'r', encoding='utf-8') as f:
+            config = json.load(f)
+            return config['guildId']
 
     async def get_roles_description(self):
         # Maybe automatically populated this file one day
@@ -35,12 +71,34 @@ class roles(commands.Cog, name="Roles"):
         with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
             content = json.load(f)
             return content['unassignable_roles']
+
+    def get_roles(self):
+        """ 
+        Returns the ID of the channel where roles are posted
+        """
+        with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
+            content = json.load(f)
+            if 'role_emojis' in content:
+                return content['role_emojis']
+            else:
+                return None 
+    
+    def get_roles_categories(self):
+        """ 
+        Returns roles categories object stored in the roles config .json file
+        """
+        with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
+            content = json.load(f)
+            if 'roles_categories' in content:
+                return content['roles_categories']
+            else:
+                return None 
     
     async def find_role_message(self, guild) -> discord.Message:
         """
         Finds the role message from the roles channel, and return the discord.Message instance of it
         """
-        role_channel_id = await self.get_roles_channel()
+        role_channel_id = self.get_roles_channel()
         if not role_channel_id:
             # not the role channel
             return None
@@ -62,11 +120,33 @@ class roles(commands.Cog, name="Roles"):
             print("Couldn't find role message")
 
         return role_message
-        
+    
+    
+    def update_assignable_roles(self, roles):
+        if roles is not None:
+            with open('roles/roles_const.json', 'r+', encoding='utf-8') as f:
+                content = json.load(f)              
+                content['role_emojis'] = roles
+                f.seek(0)
+                json.dump(content, f, indent=4, ensure_ascii=False)
+                f.truncate()
+            self.roles = roles
+
+    def update_roles_categories(self, roles_categories):
+        if roles_categories is not None:
+            with open('roles/roles_const.json', 'r+', encoding='utf-8') as f:
+                content = json.load(f)              
+                content['roles_categories'] = roles_categories
+                f.seek(0)
+                json.dump(content, f, indent=4, ensure_ascii=False)
+                f.truncate()
+            self.role_categories = roles_categories
+
+            
 
     async def get_role_from_reaction(self, guild, role_message, payload) -> discord.Role:
+        # why from name and note from json file directly?
         roles = await self.get_roles_from_role_message(guild)
-        print(roles)
         try:
             role_name = roles[str(payload.emoji)]
         except KeyError:
@@ -85,19 +165,20 @@ class roles(commands.Cog, name="Roles"):
         i = roles.index(guild.me.top_role)
 
         embed = discord.Embed(title="List of roles")
-        display_roles = [gr for gr in roles[:i] if gr.managed is False\
-            and gr.name != "@everyone"\
-            and gr.name != "bots"]
+        display_roles = [r for r in roles[:i] if r.managed is False\
+            and r.name != "@everyone"\
+            and r.name != "bots"]
 
-        description_list = await self.get_roles_description()
         for role in reversed(display_roles):
-            if role.name in description_list:
-                role_description = description_list[role.name]
-                embed.add_field(name=role.name, value=role_description, inline=True)
+            if role.name in self.roles:
+                print(f"{role.name}")
+                role_description = self.roles[role.name]["description"]
+                if self.roles[role.name]["assignable"]:
+                    embed.add_field(name=role.name, value=role_description or "N/A", inline=True)
         return embed
 
     async def update_role_list_embed(self, guild):
-        role_channel_id = await self.get_roles_channel()
+        role_channel_id = self.get_roles_channel()
         channel: discord.TextChannel = guild.get_channel(role_channel_id)
         async for message in channel.history(limit=200):
             if message.embeds and message.embeds[0].title == "List of roles":
@@ -107,137 +188,53 @@ class roles(commands.Cog, name="Roles"):
         new_embed = await self.role_list(guild)
         await msg.edit(embed=new_embed)
 
-    #region Commands 
-    @commands.command(aliases=['printRolesDescriptions', 'prd',' printrolesdescriptions'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
-    async def print_roles_descriptions(self, ctx):
-        """
-        Prints the description for each roles
-        """
-        # loop through roles, check role-description file, print corresponding descr for each role
-        print("")
-
-    @commands.command(aliases=['printRoles', 'pr',' printroles'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
-    async def print_roles(self, ctx):
-        """
-        Prints the role message to self assign role, each role having a custom emoji assigned to it (set in role_const.json) 
-        """
-        guild: discord.Guild = ctx.guild
-        # If the role message already has reaction (maybe check only on startup), assign the roles of emote ppl reacted to
-        # this is useful if they reacted while the bot was down
-
-        dup = await self.find_role_message(guild)
-        if dup:
-            await dup.delete()
-
-        role_channel_id = await self.get_roles_channel()
-        unassignable_roles = await self.get_unassignable_roles()
-        roles_channel = guild.get_channel(role_channel_id)
-
-        roles = guild.roles
-
-        i = roles.index(ctx.guild.me.top_role)
-        # maybe use role id and not name?
-
-        role_emojis = []
-        with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
-            content = json.load(f)
-            role_emojis = content['role_emojis']
-
-        role_names = [r.name for r in roles[:i] if r.managed == False and r.name not in unassignable_roles and r.name in role_emojis]
+    async def set_role_message_reactions(self, channel: discord.TextChannel, category, clearReactions = False, message: discord.Message = None) -> discord.Message:
+        role_emojis = self.roles
+        _message = message
+        if _message is None:
+            _message: discord.Message = await channel.fetch_message(category["messageId"])
         
-        m_string = "React to give yourself a role:\n\n"
-        emojis = []
-        # print(guild.emojis)
-        for r in role_names:
-            try:
-                if role_emojis[r]:
-                    role_n = role_emojis[r].replace('\u200d', '')
-                    if ':' in role_emojis[r]:
-                        m_string += f"{role_n} : `{r}`\n"
-                    else:
-                        m_string += f"{role_n} : `{r}`\n"
-                    emojis.append(str(role_n))
-                    print(r, role_n)
-            except KeyError as e:
-                print(f"Role `{r}` has no emoji set")
-                continue
-
-        m: discord.Message = await roles_channel.send(m_string)
-
-        for e in emojis:
-            print(f'role is {e}')
-            try:
-                if ':' in e:
-                    await m.add_reaction(f"<{e}>")
-                else:
-                    await m.add_reaction(f"{e}")
-            except:
-                print(f"Couldn't react with this emoji: {e}")
-                continue
-
-
-    @commands.command(aliases=['changeRoleEmoji', 'cre',' changeroleemoji'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
-    async def change_role_emoji(self, ctx, *, text):
-        texts = text.split('=')
-        if(len(texts)< 2):
-            await ctx.send("Syntax: role_name=emoji")
-            return
-        
-        role_name = texts[0]
-        emoji = texts[1]
-
-        role_message =  await self.find_role_message(ctx.guild)
-        with open('roles/roles_const.json', 'r+', encoding='utf-8') as f:
-            content = json.load(f)
-
-            if emoji in content['role_emojis'].values():
-                await ctx.send("This emoji is already used by another role, please use a different one.")
-                return
-            try:
-                old_emoji = content['role_emojis'][role_name]
-                content['role_emojis'][role_name] = emoji
-                print(old_emoji)
-                print(content['role_emojis'])
-            except KeyError as e:
-                await ctx.send(f"Couldn't find role `{role_name}`")
-                print(e)
-                return
-            f.seek(0)
-            json.dump(content, f, indent=4, ensure_ascii=False)
-            f.truncate()
-            # replace the text somehow
-           
-            print(f"Changing {old_emoji} to {emoji} for role `{role_name}`")
-            # replace based on role in that line
-            new_content = role_message.content.replace(old_emoji, emoji, 1)
-            await role_message.remove_reaction(old_emoji, ctx.me)
-            await role_message.add_reaction(emoji)
-            
-
-            await role_message.edit(content=new_content)
+        emoji_list = []
+        for role in category["roles"]:
+            if role in role_emojis and role_emojis[role]["emoji"]:
+                if role_emojis[role]["assignable"]:
+                    try:
+                        emoji_list.append(str(role_emojis[role]["emoji"]))
+                        await _message.add_reaction(role_emojis[role]["emoji"])
+                    except:
+                        print(f"Couldnt add reaction for {role}")
+                        continue
+        if clearReactions:
+            for reaction in _message.reactions:
+                if str(reaction.emoji) not in emoji_list:
+                    await _message.clear_reaction(str(reaction.emoji))
+        # return the message to edit its content when possible
+        return _message
 
     @commands.command(aliases=['src', 'setrolechannel',' setroleschannel'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
-    async def set_roles_channel(self, ctx, id = 0):
+    async def set_roles_channel(self, ctx: commands.Context, id = 0):
         """
         Sets the channel where the role message is posted and where roles can be self assigned from
         """
-        with open('config.json', 'r+', encoding='utf-8') as f:
-            config = json.load(f)
-            id_to_set = id or ctx.channel.id
-            config['rolesChannelId'] = id_to_set
-            f.seek(0)
-            json.dump(config, f, indent=4)
-            f.truncate()
+        channel_id = id or ctx.channel.id
+        self.update_roles_channel(channel_id)
         await ctx.message.add_reaction('✅')
-        # TODO: Delete old role message and auto repost the role message in the new channel
 
 
-    @commands.command(aliases=['rl'])
-    async def rolelist(self, ctx):
+    @commands.command(aliases=['cl'], hidden=True)
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    async def categorieslist(self, ctx: commands.Context):
+        res = "**__Role Categories:__**\n─────────────────────\n"
+        for category in self.role_categories.items():
+            temp = f"**`{category[0]}`: ** {', '.join(category[1]['roles'])}"
+            res += f"{temp}\n"
+        await ctx.channel.send(content=res)
+        await ctx.message.delete()
+
+    @commands.command(aliases=['rl2'])
+    async def rolelist(self, ctx: commands.Context):
+        # To be redone
         """
         Displays the list of roles with their description
         """
@@ -245,53 +242,197 @@ class roles(commands.Cog, name="Roles"):
         await ctx.channel.send(embed=embed)
         await ctx.message.delete()
 
-    @commands.command(aliases=['srd', 'setroledescription','rd'], hidden=True, help="Set role description using g!srd `<role name>`=`<role description>`")
+
+    @commands.command(aliases=['setrolemessage', 'setrolemsg'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
-    async def set_roles_description(self, ctx, *, args):
-        args_list = args.split('=')
+    async def set_role_message(self, ctx: commands.Context, *, args):
+        clear_old_message = False
+        args_list: List[str] = args.split('=')
         if(len(args_list) < 2):
-            await ctx.send("Please enter a description for the role, seperated by a `=`.\n**g!srd `<role name>`=`<role description>`**")
+            await ctx.send("Please enter message ID for the role category, seperated by a `=`.\n**g!setrolemsg `<role category name>`=`<messageI ID>`**")
             return
-        
-        if args_list[0].strip() not in [r.name for r in ctx.guild.roles]:
-            return
-            
-        with open('roles/roles_description.json', 'r+', encoding='utf-8') as f:
-            roles = json.load(f)
-            # TODO: check if role exists
-            roles[args_list[0].strip()] = args_list[1].strip()
-            f.seek(0)
-            json.dump(roles, f, indent=4)
-            f.truncate()
+
+        temp = args_list[1].split(" ")
+        if len(temp) > 1:
+            if temp[1].lower() == "clear":
+                clear_old_message = True
+
+        channel: discord.TextChannel = ctx.guild.get_channel(self.channel_id)
+
+        category_name: string = args_list[0]
+        message_id = temp[0]
 
         try:
-            await self.update_role_list_embed(ctx.guild)
-            await ctx.message.add_reaction('✅')
-        except Exception as e:
-            print(f'error when updating embed: {e}')
-            await ctx.message.add_reaction('❌')    
+            message_id = int(message_id)
+        except:
+            print("Message ID isn't a number")
+
+        # checking if the message actually exists
+        try:
+            role_message = await channel.fetch_message(message_id) 
+        except:
+            print(f"Couldn't fetch message {message_id} in {channel.mention}")
+            return
+
+        if category_name in self.role_categories:
+
+            old_message_id = self.role_categories[category_name]["messageId"]
+            if old_message_id == message_id:
+                return
+
+            self.role_categories[category_name]["messageId"] = message_id
+            category = self.role_categories[category_name]
+            
+            self.update_roles_categories(self.role_categories)
+            # channel can be None because we provide the message directly, so channel wont be used
+            await self.set_role_message_reactions(None, category, message=role_message, clearReactions=True)
+
+            try:
+                # problem here if they changed the channel id before running this command
+                # other approach is to include the channel id as an argument of this command so they can run it
+                # without changing the rolesChannelId before this seperately (running this will then update the 
+                # rolesChannelId) for now we just wont cleanup the old message if it's in a different channel
+                if clear_old_message:
+                    old_message: discord.Message = await channel.fetch_message(old_message_id)
+                    await old_message.clear_reactions()
+            except Exception as e:
+                print(e)
+                print(f"Couldn't fetch old message {old_message_id} in {channel.mention} ({channel.name})")
+                return
+        else: 
+            print(f"Can't find category {category_name} in roles categories")
+            
+        await ctx.message.add_reaction('✅')
+
+        
+    @commands.command(aliases=['setemoji'], hidden=True)
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    async def change_role_emoji(self, ctx: commands.Context, *, args):
+        args_list = args.split('=')
+        if(len(args_list) < 2):
+            await ctx.send("Please enter an emoji for the role, seperated by a `=`.\n**g!setEmoji `<role name>`=`<role emoji>`**")
+            return
+
+        role_name = args_list[0]
+        emoji = args_list[1]
+        if role_name in self.roles:
+            old_emoji = self.roles[role_name]["emoji"]
+
+            self.roles[role_name]["emoji"] = str(emoji)
+            self.update_assignable_roles(self.roles)
+           
+            roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
+            category_name = self.roles[role_name]["category"]
+            category = self.role_categories[category_name]
+            m = await self.set_role_message_reactions(channel=roles_channel, category=category, clearReactions=True)
+
+            # Updating message content
+            try:
+                await m.edit(content=m.content.replace(old_emoji, str(emoji)))
+            except:
+                print("can't edit someone else's message")
+        await ctx.message.add_reaction('✅')
+
+
+    # TODO 1.Change emoji command => update .json and edit role message too. -- DONE (editing msg content partially)
+    # 2. Add new Role => create command and update .json + msg 
+    # 3. Delete role => same thing  -- 
+
+    @commands.command(aliases=['initroles', 'initroleassign'], hidden=True)
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    async def set_role_messages_reactions(self, ctx: commands.Context):
+        role_emojis = self.roles
+        # not using ctx here because this might just become a funciton run on startup or reccuringly, so no ctx will be provided
+        guildId = await self.get_guild()
+        guild: discord.Guild = self.bot.get_guild(guildId)
+        channel: discord.TextChannel = guild.get_channel(self.get_roles_channel())
+        if not channel:
+            print("not roles channel found")
+            return
+
+        for category in self.role_categories.items():
+            key = category[0]
+            category_obj = category[1]
+            await self.set_role_message_reactions(channel, category_obj, clearReactions = True)
+
+        await ctx.message.add_reaction('✅')
+
     #endregion Commands
 
     #region Listeners
     @commands.Cog.listener()
     async def on_guild_role_create(self, role):
         roles = await self.get_roles_from_role_message(role.guild)
+        with open("logs/roleActivity.txt", "a+", encoding="utf-8") as f:
+                f.write(f"Role {role} create\n")
         print(roles)
         #TODO: edit the role message 
 
+
     @commands.Cog.listener()
     async def on_guild_role_delete(self, role):
-        print("Role Deleted: Function not implemented")
-        print(role.guild)
-        roles = await self.get_roles_from_role_message(role.guild)
-        #TODO: edit the role message 
+
+        assignable_roles = self.roles
+        roles_categories = self.role_categories
+
+        if role.name in assignable_roles:
+            roleEmoji = assignable_roles.pop(role.name)
+
+            category = roleEmoji["category"]
+            roles_categories[category]["roles"] = [r for r in roles_categories[category]["roles"] if r != role.name]
+                    
+            self.update_assignable_roles(assignable_roles)
+            self.update_roles_categories(roles_categories)
+
+            # TODO: Sync discord message using roleEmoji
+
+        self.log(f"Role {role} deleted")
+        # roles = await self.get_roles_from_role_message(role.guild)
      
-        
     @commands.Cog.listener()
-    async def on_guild_role_update(self, before, after):
-        roles = await self.get_roles_from_role_message(before.guild)
-        print("Role Updated: Function not implemented")
-        #TODO: edit the role message 
+    async def on_guild_role_update(self, before: discord.Role, after: discord.Role):
+        # roles = await self.get_roles_from_role_message(before.guild)
+
+        if before.name != after.name:
+            assignable_roles = self.roles
+            roles_categories = self.role_categories
+
+            if before.name in assignable_roles:
+                roleEmoji = assignable_roles.pop(before.name)
+                if roleEmoji is not None:
+                    assignable_roles[after.name] = roleEmoji
+
+                    category = roleEmoji["category"]
+                    roles_categories[category]["roles"] =  [r.replace(before.name, after.name) for r in roles_categories[category]["roles"]]
+                    # message doesnt need to be edited as the role itself is mentionned (@Role) in the message, meaning it'll be updated automatically
+                    self.update_assignable_roles(assignable_roles)
+                    self.update_roles_categories(roles_categories)
+
+                    # TODO: Sync discord message usiong roleEmojui
+
+        print(before)
+        print(after)
+
+        # ====== LOGGIN ======
+        changes = ""
+        for s in before.__slots__:
+            if s == "tags":
+                continue
+            prop_before = getattr(before,s)
+            prop_after = getattr(after, s)
+            if prop_before != prop_after:
+                if s == "_colour":
+                    prop_before = hex(int(prop_before)).replace("0x", "#")
+                    prop_after = hex(int(prop_after)).replace("0x", "#")
+                    
+                changes += f"\n\t* {s}: {prop_before} -> {prop_after}"
+                
+        try:
+            self.log(f"Role {before} updated: {after}{changes}")
+        except Exception as e:
+            self.log(f"Role {before}: something changed, but couldn't log. Error: {e}")
+        
+        #TODO: edit the role message? 
 
     async def get_roles_from_role_message(self, guild) -> dict:
         role_message = await self.find_role_message(guild)
@@ -318,63 +459,61 @@ class roles(commands.Cog, name="Roles"):
         if payload.member.bot or payload.guild_id is None:
             return
         guild = self.bot.get_guild(payload.guild_id)
-        member = guild.get_member(int(payload.user_id))
-        if not member:
-            print("Couldn't get member from reaction.")
-        channel = guild.get_channel(payload.channel_id)
-
-        role_channel_id = await self.get_roles_channel()
-        role_message = await self.find_role_message(guild)
-
-        if role_message is None:
-            return
-
-        if channel.id == role_channel_id :
-            if payload.message_id == role_message.id:
-                try:
-                    role = await self.get_role_from_reaction(guild, role_message, payload)
-                except KeyError:
-                   print(f"Role isn't in the role message") 
-                   return
-            unassignable_roles = await self.get_unassignable_roles()
-            if role.name not in unassignable_roles:
-                await member.add_roles(role)
-                print(f"Added {str(role)} to user {str(member)}")
-            else:
-                print("Role is unassignable")
-
-    @commands.Cog.listener()
-    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
-        # payload member only available for add reaction
-        if payload.guild_id is None:
-            return
-        guild = self.bot.get_guild(payload.guild_id)
-        member = guild.get_member(int(payload.user_id))
+        member: discord.Member = guild.get_member(int(payload.user_id))
         if not member:
             print("Couldn't get member from reaction.")
         if member.bot:
             return
-        channel = guild.get_channel(payload.channel_id)
+        # channel = guild.get_channel(payload.channel_id)
+        role_emojis = self.roles
 
-        role_channel_id = await self.get_roles_channel()
-        role_message = await self.find_role_message(guild)
+        # role_channel_id = await self.get_roles_channel()        
 
-        if role_message is None:
+        for category in self.role_categories.values():
+            if payload.message_id == category["messageId"]:
+                role = next(filter(lambda x: (x[1]["emoji"] == str(payload.emoji)), role_emojis.items()), None)
+                # print(role)
+                if role and role[1]["assignable"]:
+                    try:
+                        r = discord.utils.get(guild.roles, name=role[0])
+                        await member.add_roles(r)
+                        # TODO move logging to seperate file
+                        self.log(f"Added {str(role[0])} to user {str(member)}")
+                    except:
+                        print(f"Role {role[0]} not found in discord server.")
+
+                else:
+                    print("Role is unassignable")
+   
+    @commands.Cog.listener()
+    async def on_raw_reaction_remove(self, payload: discord.RawReactionActionEvent):
+        # payload member only available for add reaction
+        
+        if payload.guild_id is None:
             return
+        guild = self.bot.get_guild(payload.guild_id)
+        member: discord.Member = guild.get_member(int(payload.user_id))
+        if not member:
+            print("Couldn't get member from reaction.")
+        if member.bot:
+            return
+        # channel = guild.get_channel(payload.channel_id)
+        role_emojis = self.roles
 
-        if channel.id == role_channel_id :
-            if payload.message_id == role_message.id:
-                try:
-                    role = await self.get_role_from_reaction(guild, role_message, payload)
-                except KeyError:
-                   print(f"Role isn't in the role message") 
-                   return
-            unassignable_roles = await self.get_unassignable_roles()
-            if role.name not in unassignable_roles:
-                await member.remove_roles(role)
-                print(f"Removed role {str(role)} from user {str(member)}")
-            else:
-                print("Role is unassignable")
-    #endregion Listeners
+        # role_channel_id = await self.get_roles_channel()
+        for category in self.role_categories.values():
+            if payload.message_id == category["messageId"]:
+                role = next(filter(lambda x: (x[1]["emoji"] == str(payload.emoji)), role_emojis.items()), None)
+                # print(role)
+                if role and role[1]["assignable"]:
+                    try:
+                        r = discord.utils.get(guild.roles, name=role[0])
+                        await member.remove_roles(r)
+                        # TODO move logging to seperate file
+                        self.log(f"Removed {str(role[0])} from user {str(member)}")
+                    except:
+                        print(f"Role {role[0]} not found in discord server.")
+
+
 def setup(bot):
     bot.add_cog(roles(bot))

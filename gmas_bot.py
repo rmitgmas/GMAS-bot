@@ -30,6 +30,7 @@ logger.addHandler(handler)
 token = open(r"token.txt", "r").read()
 intents = discord.Intents.default()
 intents.members = True 
+intents.guilds = True
 bot = commands.Bot(command_prefix="g!", intents=intents)
 
 last_msg = None

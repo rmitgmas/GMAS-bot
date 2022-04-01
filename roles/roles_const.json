@@ -1,0 +1,363 @@
+{
+    "unassignable_roles": [
+        "@everyone",
+        "Server Booster",
+        "bots",
+        "Hackers",
+        "Elders"
+    ],
+    "role_emojis": {
+        "Alcoholics": {
+            "emoji": "<:vodka:734032359334346773>",
+            "assignable": true,
+            "category": "interest",
+            "channels": null,
+            "description": "glug"
+        },
+        "Anime Junkies": {
+            "emoji": "🎞️",
+            "assignable": true,
+            "category": "interest",
+            "channels": [
+                773363888518987786,
+                767386967670390785,
+                876707700388528168
+            ],
+            "description": "You like anime :)"
+        },
+        "Gamer Paladins": {
+            "emoji": "🎮",
+            "assignable": true,
+            "category": "interest",
+            "channels": [
+                724298759412121679,
+                764465541871042580
+            ],
+            "description": "You are a real gamer 😎"
+        },
+        "Creators": {
+            "emoji": "🖌️",
+            "assignable": true,
+            "category": "interest",
+            "channels": [],
+            "description": "Share, create and discuss art together. Beginners and pros are all welcome"
+        },
+        "Hot for Robots": {
+            "emoji": "<:boner:592327226494550027>",
+            "assignable": true,
+            "category": "interest",
+            "channels": [
+                572449391978348555
+            ],
+            "description": "Your a mecha enthusiast, whether it's anime, gunpla or anything that relates to big robots"
+        },
+        "Simps": {
+            "emoji": "<:simp:958881404282892298>",
+            "assignable": true,
+            "category": "interest",
+            "channels": [
+                701919742579048543,
+                766596456546566154
+            ],
+            "description": "Simp and talk about your favourite anime characters and/or your favourite vtubers"
+        },
+        "Gigahertz": {
+            "emoji": "🤓",
+            "assignable": true,
+            "category": "interest",
+            "channels": null,
+            "description": "You're a nerd"
+        },
+        "Cosplayers": {
+            "emoji": "👘",
+            "assignable": true,
+            "category": "interest",
+            "channels": null,
+            "description": "Anime, manga and game IRL"
+        },
+        "Bookworms": {
+            "emoji": "📚",
+            "assignable": true,
+            "category": "interest",
+            "channels": null,
+            "description": "Manga and light novel connoisseurs"
+        },
+        "Minecrafters": {
+            "emoji": "🏕️",
+            "assignable": true,
+            "category": "games",
+            "channels": [
+                692247268429922334
+            ],
+            "description": "For epic Minecraft gamers"
+        },
+        "Hard Stuck Inters": {
+            "emoji": "<:m7:815157661552476192>",
+            "assignable": true,
+            "category": "games",
+            "channels": [
+                717157137331126383
+            ],
+            "description": "For League of Legends degenerates, losing sanity after every game"
+        },
+        "Beat Addicts": {
+            "emoji": "🎶",
+            "assignable": true,
+            "category": "games",
+            "channels": [
+                "TBD"
+            ],
+            "description": "For rhythm games enjoyer"
+        },
+        "Traveller": {
+            "emoji": "<:threaten:763579984119070742>",
+            "assignable": true,
+            "category": "games",
+            "channels": [
+                766596311251681280
+            ],
+            "description": "For people with (or without) a gacha addiction, that play Genshin Impact"
+        },
+        "Dungeonchads": {
+            "emoji": "🎲",
+            "assignable": true,
+            "category": "games",
+            "channels": [
+                764465541871042580
+            ],
+            "description": "For people interested in DnD styled games"
+        },
+        "Valorant": {
+            "emoji": "🔻",
+            "assignable": true,
+            "category": "games",
+            "channels": [
+                958926886078152704
+            ],
+            "description": "For people that play CS:GO but from Riot Games"
+        },
+        "Apex Legends": {
+            "emoji": "⚔️",
+            "assignable": true,
+            "category": "games",
+            "channels": [
+                958927340346425415
+            ],
+            "description": "For people that play CS:GO but from Riot Games"
+        },
+        "CS:GO": {
+            "emoji": "💣",
+            "assignable": true,
+            "category": "games",
+            "channels": [
+                958926964213833778
+            ],
+            "description": "For people that play CS:GO but from Riot Games"
+        },
+        "Welcome Squad": {
+            "emoji": "<:Wave:956520880844992512>",
+            "assignable": true,
+            "category": "community",
+            "channels": null,
+            "description": "Greet newcomers when they joined this amazing server"
+        },
+        "Party Game Gang": {
+            "emoji": "🎉",
+            "assignable": true,
+            "category": "community",
+            "channels": null,
+            "description": "Get pinged for party game sessions"
+        },
+        "Weeb Translators": {
+            "emoji": "㊗️",
+            "assignable": true,
+            "category": "community",
+            "channels": [
+                767386967670390785,
+                734563102128996432,
+                704154910933123135,
+                704804859211284610
+            ],
+            "description": "You can understand weebanese. Teach us senpai"
+        },
+        "Waifu Rollers": {
+            "emoji": "🎰",
+            "assignable": true,
+            "category": "discordGames",
+            "channels": null,
+            "description": "Unlock access to our discord bot games!"
+        },
+        "he/him": {
+            "emoji": "👨",
+            "assignable": true,
+            "category": "pronouns",
+            "channels": null,
+            "description": ""
+        },
+        "she/her": {
+            "emoji": "👩",
+            "assignable": true,
+            "category": "pronouns",
+            "channels": null,
+            "description": ""
+        },
+        "they/them": {
+            "emoji": "🧑‍🦰",
+            "assignable": true,
+            "category": "pronouns",
+            "channels": null,
+            "description": ""
+        },
+        "Elders": {
+            "emoji": "👴",
+            "assignable": false,
+            "category": "other",
+            "channels": null,
+            "description": "You've been around for a while"
+        },
+        "Hackers": {
+            "emoji": "💻",
+            "assignable": false,
+            "category": "volunteers",
+            "channels": null,
+            "description": "Loving Bot Parents"
+        },
+        "Designers": {
+            "emoji": "💻",
+            "assignable": false,
+            "category": "volunteers",
+            "channels": null,
+            "description": "Official GMAS Content Creators"
+        },
+        "Podcast": {
+            "emoji": "💻",
+            "assignable": false,
+            "category": "volunteers",
+            "channels": null,
+            "description": "Podcast Guests and Hosts"
+        },
+        "Server Booster": {
+            "emoji": "💻",
+            "assignable": false,
+            "category": "volunteers",
+            "channels": null,
+            "description": "Discord DLC unlockers (they give us extra features for our server)"
+        },
+        "Prez": {
+            "emoji": null,
+            "assignable": false,
+            "category": "staff",
+            "channels": null,
+            "description": "All powerful ruler of this server, and also of the club in general"
+        },
+        "Vice President": {
+            "emoji": null,
+            "assignable": false,
+            "category": "staff",
+            "channels": null,
+            "description": "Almost President, but not really President... still very powerful"
+        },
+        "Secretary": {
+            "emoji": null,
+            "assignable": false,
+            "category": "staff",
+            "channels": null,
+            "description": ""
+        },
+        "Execs": {
+            "emoji": null,
+            "assignable": false,
+            "category": "staff",
+            "channels": null,
+            "description": ""
+        },
+        "Treasurer": {
+            "emoji": null,
+            "assignable": false,
+            "category": "staff",
+            "channels": null,
+            "description": ""
+        },
+        "Social Media Manager": {
+            "emoji": null,
+            "assignable": false,
+            "category": "staff",
+            "channels": null,
+            "description": ""
+        },
+        "Committee": {
+            "emoji": null,
+            "assignable": false,
+            "category": "staff",
+            "channels": null,
+            "description": "Any general questions about our club or events, feel free to @ping the @Committee"
+        },
+        "Mods": {
+            "emoji": null,
+            "assignable": false,
+            "category": "staff",
+            "channels": null,
+            "description": "If you have any trouble with someone in chat or voice, feel free to @ping the @Mods."
+        },
+        "Meet&Ping": {
+            "emoji": "👋",
+            "assignable": true,
+            "category": "community",
+            "channels": [],
+            "description": "Get pinged for casual <#823347530066165790>"
+        }
+    },
+    "roles_categories": {
+        "interest": {
+            "roles": [
+                "Anime Junkies",
+                "Gamer Paladins",
+                "Creators",
+                "Hot for Robots",
+                "Simps",
+                "Gigahertz",
+                "Alcoholics",
+                "Cosplayers",
+                "Bookworms"
+            ],
+            "messageId": 953041713046388736
+        },
+        "games": {
+            "roles": [
+                "Minecrafters",
+                "Hard Stuck Inters",
+                "Fraggers",
+                "Beat Addicts",
+                "Traveller",
+                "Dungeonchads",
+                "CS:GO",
+                "Valorant",
+                "Apex Legends"
+            ],
+            "messageId": 953041734999367741
+        },
+        "community": {
+            "roles": [
+                "Welcome Squad",
+                "Party Game Gang",
+                "Weeb Translators",
+                "Meet&Ping"
+            ],
+            "messageId": 953042774008148069
+        },
+        "discordGames": {
+            "roles": [
+                "Waifu Rollers"
+            ],
+            "messageId": 953042793536847943
+        },
+        "pronouns": {
+            "roles": [
+                "he/him",
+                "she/her",
+                "they/them"
+            ],
+            "messageId": 953042811761098782
+        }
+    }
+}
