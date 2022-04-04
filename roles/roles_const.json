@@ -143,7 +143,7 @@
             "channels": [
                 958927340346425415
             ],
-            "description": "For people that play CS:GO but from Riot Games"
+            "description": "Those who want to become the Apex Legend"
         },
         "CS:GO": {
             "emoji": "💣",
@@ -152,7 +152,14 @@
             "channels": [
                 958926964213833778
             ],
-            "description": "For people that play CS:GO but from Riot Games"
+            "description": "Rush B, Rush B!!!"
+        },
+        "Dota": {
+            "emoji": "🟥 games",
+            "assignable": true,
+            "category": "games",
+            "channels": [],
+            "description": "League but everyone is OP so it's balanced"
         },
         "Welcome Squad": {
             "emoji": "<:Wave:956520880844992512>",
@@ -332,7 +339,8 @@
                 "Dungeonchads",
                 "CS:GO",
                 "Valorant",
-                "Apex Legends"
+                "Apex Legends",
+                "Dota"
             ],
             "messageId": 953041734999367741
         },

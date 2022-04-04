@@ -47,7 +47,7 @@ class roles(commands.Cog, name="Roles"):
                 f.seek(0)
                 json.dump(content, f, indent=4, ensure_ascii=False)
                 f.truncate()
-            self.channel_id = channel_id
+            self.roles_channel_id = channel_id
 
 
     # move somehwere more global
@@ -143,7 +143,6 @@ class roles(commands.Cog, name="Roles"):
             self.role_categories = roles_categories
 
             
-
     async def get_role_from_reaction(self, guild, role_message, payload) -> discord.Role:
         # why from name and note from json file directly?
         roles = await self.get_roles_from_role_message(guild)
@@ -224,17 +223,20 @@ class roles(commands.Cog, name="Roles"):
 
     @commands.command(aliases=['cl'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
-    async def categorieslist(self, ctx: commands.Context):
-        res = "**__Role Categories:__**\n─────────────────────\n"
+    async def list_categories(self, ctx: commands.Context):
+        """
+        Lists all the roles categories and the list of roles in each category
+        """
+        res = "**__Role Categories:__**\n─────────────────\n"
         for category in self.role_categories.items():
             temp = f"**`{category[0]}`: ** {', '.join(category[1]['roles'])}"
             res += f"{temp}\n"
         await ctx.channel.send(content=res)
         await ctx.message.delete()
 
-    @commands.command(aliases=['rl2'])
-    async def rolelist(self, ctx: commands.Context):
-        # To be redone
+    @commands.command(aliases=['rl'])
+    async def list_roles(self, ctx: commands.Context):
+        # To be redone/
         """
         Displays the list of roles with their description
         """
@@ -246,10 +248,13 @@ class roles(commands.Cog, name="Roles"):
     @commands.command(aliases=['setrolemessage', 'setrolemsg'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def set_role_message(self, ctx: commands.Context, *, args):
+        """
+        Sets the message use for role assignment for a specific category. **g!setrolemsg `<CATEGORY_NAME>`=`<MESSAGE_ID>`**
+        """
         clear_old_message = False
         args_list: List[str] = args.split('=')
         if(len(args_list) < 2):
-            await ctx.send("Please enter message ID for the role category, seperated by a `=`.\n**g!setrolemsg `<role category name>`=`<messageI ID>`**")
+            await ctx.send("Please enter message ID for the role category, seperated by a `=`.\n**g!setrolemsg `<CATEGORY_NAME>`=`<MESSAGE_ID>`**")
             return
 
         temp = args_list[1].split(" ")
@@ -257,7 +262,7 @@ class roles(commands.Cog, name="Roles"):
             if temp[1].lower() == "clear":
                 clear_old_message = True
 
-        channel: discord.TextChannel = ctx.guild.get_channel(self.channel_id)
+        channel: discord.TextChannel = ctx.guild.get_channel(self.roles_channel_id)
 
         category_name: string = args_list[0]
         message_id = temp[0]
@@ -304,14 +309,23 @@ class roles(commands.Cog, name="Roles"):
             
         await ctx.message.add_reaction('✅')
 
-        
+
     @commands.command(aliases=['setemoji'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def change_role_emoji(self, ctx: commands.Context, *, args):
+        """
+        Change the emoji used to assign a specific role. **g!setEmoji `<ROLE_NAME>`=`<EMOJI>`**
+        """
         args_list = args.split('=')
         if(len(args_list) < 2):
             await ctx.send("Please enter an emoji for the role, seperated by a `=`.\n**g!setEmoji `<role name>`=`<role emoji>`**")
             return
+
+        temp = args_list[1].split(" ")
+        category = ""
+        if len(temp) > 1:
+            if temp[1].lower() in self.role_categories:
+                category = temp[1].lower()
 
         role_name = args_list[0]
         emoji = args_list[1]
@@ -324,6 +338,8 @@ class roles(commands.Cog, name="Roles"):
             roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
             category_name = self.roles[role_name]["category"]
             category = self.role_categories[category_name]
+            print("here")
+
             m = await self.set_role_message_reactions(channel=roles_channel, category=category, clearReactions=True)
 
             # Updating message content
@@ -331,6 +347,22 @@ class roles(commands.Cog, name="Roles"):
                 await m.edit(content=m.content.replace(old_emoji, str(emoji)))
             except:
                 print("can't edit someone else's message")
+        else:
+            self.roles[role_name] = {
+                "emoji": emoji,
+                "assignable": True,
+                "category": category,
+                "channels": [],
+                "description": "League but everyone is OP so is balanced"
+            }
+            self.update_assignable_roles(self.roles)
+            if category:
+                print("here")
+                self.role_categories[category]["roles"].append(role_name)
+                self.update_roles_categories(self.role_categories)
+                m = await self.set_role_message_reactions(channel=roles_channel, category=category, clearReactions=True)
+
+
         await ctx.message.add_reaction('✅')
 
 
@@ -338,9 +370,79 @@ class roles(commands.Cog, name="Roles"):
     # 2. Add new Role => create command and update .json + msg 
     # 3. Delete role => same thing  -- 
 
+
+    @commands.command(aliases=['setrolecategory'], hidden=True)
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    async def set_role_category(self, ctx: commands.Context, *, args):
+        """
+        Change the category of a certain role. **g!setEmoji `<ROLE_NAME>`=`<CATEGORY>`**
+        """
+        args_list = args.split('=')
+        if(len(args_list) < 2):
+            await ctx.send("Please enter an emoji for the role, seperated by a `=`.\n**g!setEmoji `<role name>`=`<role emoji>`**")
+            return
+
+        role_name = args_list[0]
+        category = args_list[1]
+        
+        if role_name in self.roles:
+            if category in self.role_categories:
+                self.roles[role_name]["category"] = category
+                self.role_categories[category]["roles"].append(role_name)
+                self.update_assignable_roles(self.roles)
+                self.update_roles_categories(self.role_categories)
+
+
+    @commands.command(aliases=['activaterole'])
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    async def set_role_active(self, ctx: commands.Context, *, role):
+        # To be redone
+        """
+        Sets a specific Role as assignable
+        """
+        
+        if role not in self.roles:
+            print(f"Role {role} couldn't be found")
+            return
+
+        roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
+
+        self.roles[role]["assignable"] = True
+        category = self.roles[role]["category"]
+
+        self.update_assignable_roles(self.roles)
+        await self.set_role_message_reactions(roles_channel, self.role_categories[category], clearReactions=True)
+        await ctx.message.add_reaction('✅')
+
+
+    @commands.command(aliases=['deactivaterole'])
+    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    async def set_role_inactive(self, ctx: commands.Context, *, role):
+        # To be redone
+        """
+        Sets a specific Role as unassignable
+        """
+        
+        if role not in self.roles:
+            print(f"Role {role} couldn't be found")
+            return
+
+        roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
+
+        self.roles[role]["assignable"] = False
+        category = self.roles[role]["category"]
+
+        self.update_assignable_roles(self.roles)
+        await self.set_role_message_reactions(roles_channel, self.role_categories[category], clearReactions=True)
+        await ctx.message.add_reaction('✅')
+
+
     @commands.command(aliases=['initroles', 'initroleassign'], hidden=True)
     @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
     async def set_role_messages_reactions(self, ctx: commands.Context):
+        """
+        Sets all the reactions for all the role assignment messages
+        """
         role_emojis = self.roles
         # not using ctx here because this might just become a funciton run on startup or reccuringly, so no ctx will be provided
         guildId = await self.get_guild()
