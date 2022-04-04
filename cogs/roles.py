@@ -328,7 +328,7 @@ class roles(commands.Cog, name="Roles"):
                 category = temp[1].lower()
 
         role_name = args_list[0]
-        emoji = args_list[1]
+        emoji = temp[0]
         if role_name in self.roles:
             old_emoji = self.roles[role_name]["emoji"]
 
