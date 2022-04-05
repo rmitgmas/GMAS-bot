@@ -4,30 +4,31 @@ from random import randint
 import json
 import os
 import discord
-import backgroundTasks
 from discord.ext import commands, tasks
 from discord import Game
 from discord.ext.commands import Bot
 from discord.ext.tasks import loop
-from discord.voice_client import VoiceClient
 import backgroundTasks
 from time import sleep
 import pytz
 import asyncio
 from datetime import datetime
 from json import JSONEncoder
+import os
+from dotenv import load_dotenv
 
 from cogs import roles
 
 import logging
 
 logger = logging.getLogger('discord')
-logger.setLevel(logging.DEBUG)
+logger.setLevel(logging.WARNING)
 handler = logging.FileHandler(filename='discord.log', encoding='utf-8', mode='w')
 handler.setFormatter(logging.Formatter('%(asctime)s:%(levelname)s:%(name)s: %(message)s'))
 logger.addHandler(handler)
 
-token = open(r"token.txt", "r").read()
+load_dotenv()
+token = os.getenv("TOKEN")
 intents = discord.Intents.default()
 intents.members = True 
 intents.guilds = True
@@ -146,17 +147,12 @@ async def on_command_error(ctx, error):
     if isinstance(error, commands.MissingRequiredArgument):
         await ctx.send(f"Missing parameter {command_args} to use the command")
     else:
-        with open("config.json") as f:
-            config = json.load(f)
-        bot_dev_role = ctx.guild.get_role(config['botDevId'])
-
-        # await ctx.send(f"Something went wrong! Look into it {bot_dev_role.mention}")
+        # TODO: not hardcode the channel ID
+        debug_channel: discord.TextChannel = ctx.guild.get_channel(704780969453813822)
+        await debug_channel.send(content=error)
+        await ctx.message.add_reaction('❌')
         print(error)
-
-@bot.on_error
-async def on_error(event, *args, **kwargs):
-    print(f"Event: {event}\nArgs: {args}\nKwargs: {kwargs}")
-
+ 
 loop = asyncio.get_event_loop()
 try:
     print('starting')

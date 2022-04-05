@@ -28,7 +28,7 @@
         "Gamer Paladins": {
             "emoji": "🎮",
             "assignable": true,
-            "category": "interest",
+            "category": "games",
             "channels": [
                 724298759412121679,
                 764465541871042580
@@ -52,7 +52,7 @@
             "description": "Your a mecha enthusiast, whether it's anime, gunpla or anything that relates to big robots"
         },
         "Simps": {
-            "emoji": "<:simp:958881404282892298>",
+            "emoji": "<:Simp:958881404282892298>",
             "assignable": true,
             "category": "interest",
             "channels": [
@@ -155,11 +155,13 @@
             "description": "Rush B, Rush B!!!"
         },
         "Dota": {
-            "emoji": "🟥 games",
+            "emoji": "🟥",
             "assignable": true,
             "category": "games",
-            "channels": [],
-            "description": "League but everyone is OP so it's balanced"
+            "channels": [
+                960510754140876850
+            ],
+            "description": "League but everyone is OP so ii's balanced"
         },
         "Welcome Squad": {
             "emoji": "<:Wave:956520880844992512>",
@@ -318,7 +320,6 @@
         "interest": {
             "roles": [
                 "Anime Junkies",
-                "Gamer Paladins",
                 "Creators",
                 "Hot for Robots",
                 "Simps",
@@ -340,7 +341,8 @@
                 "CS:GO",
                 "Valorant",
                 "Apex Legends",
-                "Dota"
+                "Dota",
+                "Gamer Paladins"
             ],
             "messageId": 953041734999367741
         },

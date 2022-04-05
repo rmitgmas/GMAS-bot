@@ -4,8 +4,9 @@ __pycache__
 *.pyc
 logs
 
-# Gotta keep those token from being leaked :)
+# Gotta keep those tokens from being leaked :)
 token.txt
+.env
 users.json
 
 *.log
