@@ -25,10 +25,15 @@ class roles(commands.Cog, name="Roles"):
         #     f.write(f"[{time}] {message}\n")
         # print(f"{message}")
 
-    def is_mod(self):
+    def is_mod():
         async def predicate(ctx):
-            mod_roles = ['Prez', 'Committee', 'Mods', 'Mod Helpers']
-            any(role.name in mod_roles for role in ctx.author.roles)
+            # Save this once to avoid fetching it everytime. only refetch if changes are made to role
+            mod_role = discord.utils.get(ctx.guild.roles, name="Mods")
+            has_role = ctx.author.top_role.position >= mod_role.position
+            print(f"{mod_role.position} - your Id: {ctx.author.top_role.position}")
+            if has_role == False:
+               await ctx.send(content="You do not have persmission to use this command")
+            return has_role
         return commands.check(predicate)
 
     def get_roles_channel(self):
@@ -144,8 +149,9 @@ class roles(commands.Cog, name="Roles"):
         # return the message to edit its content when possible
         return _message
 
+    #region Commands
     @commands.command(aliases=['src', 'setrolechannel',' setroleschannel'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    @commands.check_any(is_mod(), commands.is_owner())
     async def set_roles_channel(self, ctx: commands.Context, id = 0):
         """
         Sets the channel where the role message is posted and where roles can be self assigned from
@@ -156,7 +162,7 @@ class roles(commands.Cog, name="Roles"):
 
 
     @commands.command(aliases=['cl'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    @commands.check_any(is_mod(), commands.is_owner())
     async def list_categories(self, ctx: commands.Context):
         """
         Lists all the roles categories and the list of roles in each category
@@ -180,7 +186,7 @@ class roles(commands.Cog, name="Roles"):
 
 
     @commands.command(aliases=['setrolemessage', 'setrolemsg'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    @commands.check_any(is_mod(), commands.is_owner())
     async def set_role_message(self, ctx: commands.Context, *, args):
         """
         Sets the message use for role assignment for a specific category. **g!setrolemsg `<CATEGORY_NAME>`=`<MESSAGE_ID>`**
@@ -245,7 +251,7 @@ class roles(commands.Cog, name="Roles"):
 
 
     @commands.command(aliases=['setemoji'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    @commands.check_any(is_mod(), commands.is_owner())
     async def change_role_emoji(self, ctx: commands.Context, *, args):
         """
         Change the emoji used to assign a specific role. **g!setEmoji `<ROLE_NAME>`=`<EMOJI>`**
@@ -307,7 +313,7 @@ class roles(commands.Cog, name="Roles"):
     # some extra logic will be handled when the category or the emoji are changing (updating the self assign msgs)
 
     @commands.command(aliases=['setrolecategory'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    @commands.check_any(is_mod(), commands.is_owner())
     async def set_role_category(self, ctx: commands.Context, *, args):
         """
         Change the category of a certain role. **g!setEmoji `<ROLE_NAME>`=`<CATEGORY>`**
@@ -341,7 +347,7 @@ class roles(commands.Cog, name="Roles"):
         await ctx.message.add_reaction('✅')
 
     @commands.command(aliases=['roleinfo'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    @commands.check_any(is_mod(), commands.is_owner())
     async def role_info(self, ctx: commands.Context, *, role_name):
         """
         Get the setting for a specific role. These are settings for the self-assign channel, not Discord settings
@@ -364,7 +370,7 @@ class roles(commands.Cog, name="Roles"):
 
 
     @commands.command(aliases=['activaterole'])
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    @commands.check_any(is_mod(), commands.is_owner())
     async def set_role_active(self, ctx: commands.Context, *, role):
         # To be redone
         """
@@ -386,7 +392,7 @@ class roles(commands.Cog, name="Roles"):
 
 
     @commands.command(aliases=['deactivaterole'])
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    @commands.check_any(is_mod(), commands.is_owner())
     async def set_role_inactive(self, ctx: commands.Context, *, role):
         # To be redone
         """
@@ -408,7 +414,7 @@ class roles(commands.Cog, name="Roles"):
 
 
     @commands.command(aliases=['initroles', 'initroleassign', 'i'], hidden=True)
-    @commands.check_any(commands.check(is_mod), commands.check(commands.is_owner))
+    @commands.check_any(is_mod(), commands.is_owner())
     async def init_role_messages_reactions(self, ctx: commands.Context):
         """
         Adds all the reactions for all the role assignment messages. clears all unreated reactions
