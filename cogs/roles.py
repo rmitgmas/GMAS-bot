@@ -472,6 +472,7 @@ class roles(commands.Cog, name="Roles"):
             self.roles[role_name]["category"] = category
             self.role_categories[category]["roles"].append(role_name)
             self.update_role(self.roles[role_name])
+            self.update_category(self.role_categories[old_category])
             self.update_category(self.role_categories[category])
 
             roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
