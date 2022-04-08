@@ -4,3 +4,4 @@ pytz==2020.1
 beautifulsoup4==4.9.1
 discord==1.7.3
 python-dotenv==0.17.1
+psycopg2==2.9.3

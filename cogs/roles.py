@@ -1,9 +1,12 @@
+from dataclasses import replace
 import string
 from typing import List
 import discord
 from discord.ext import commands
 import json
-
+from datetime import datetime
+import psycopg2
+import os
 # TODO: command to add/remove unassignable roles
 # TODO: differentiate unassignable and unremovable roles?
 # TODO: save role message in memory (and in a json in case bot goes down) and always use this reference. 
@@ -11,26 +14,34 @@ import json
 # message on every update)
 class roles(commands.Cog, name="Roles"): 
 
+    
     def __init__(self, bot: discord.Client):
+        self.host = os.getenv("HOST")
+        self.database = os.getenv("DATABASE")
+        self.user = os.getenv("DB_USER")
+        self.password = os.getenv("DB_PASSWORD")
+
         self.bot=bot
         self.role_categories: dict = self.get_roles_categories()
+        # print(self.role_categories)
         self.roles = self.get_roles()
+        # print(self.roles)
         self.roles_channel_id = self.get_roles_channel()
 
         
     def log(self, message: string):
-        print("Uncomment if we want to log roles activity")
-        # with open("logs/roleActivity.txt", "a+", encoding="utf-8") as f:
-        #     time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        #     f.write(f"[{time}] {message}\n")
-        # print(f"{message}")
+        # print("Uncomment if we want to log roles activity")
+        with open("logs/roleActivity.txt", "a+", encoding="utf-8") as f:
+            time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            f.write(f"[{time}] {message}\n")
+        print(f"{message}")
 
     def is_mod():
         async def predicate(ctx):
             # Save this once to avoid fetching it everytime. only refetch if changes are made to role
             mod_role = discord.utils.get(ctx.guild.roles, name="Mods")
             has_role = ctx.author.top_role.position >= mod_role.position
-            print(f"{mod_role.position} - your Id: {ctx.author.top_role.position}")
+            # print(f"{mod_role.position} - your Id: {ctx.author.top_role.position}")
             if has_role == False:
                await ctx.send(content="You do not have persmission to use this command")
             return has_role
@@ -69,43 +80,166 @@ class roles(commands.Cog, name="Roles"):
         """ 
         Returns the ID of the channel where roles are posted
         """
-        with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
-            content = json.load(f)
-            if 'role_emojis' in content:
-                return content['role_emojis']
-            else:
-                return None 
+        try:
+            conn = psycopg2.connect(host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password)
+
+            cur = conn.cursor()
+
+            cur.execute('SELECT name, emoji, category, assignable, channels, description FROM roles')
+            query = cur.fetchall()
+            # print(query)
+            res = {}
+            for r in query:
+                # print(r)
+                res[r[0]] = {"name": r[0], "emoji": r[1], "category": r[2], "assignable": r[3], "channels": r[4], "description": r[5]}
+            
+        except (Exception, psycopg2.DatabaseError) as error:
+                print(error)
+                res = None
+        finally:
+            if conn is not None:
+                conn.close()
+                print('Database connection closed.')
+            return res
+        
+        
+        # with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
+        #     content = json.load(f)
+        #     if 'role_emojis' in content:
+        #         return content['role_emojis']
+        #     else:
+        #         return None 
     
     def get_roles_categories(self):
         """ 
         Returns roles categories object stored in the roles config .json file
         """
-        with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
-            content = json.load(f)
-            if 'roles_categories' in content:
-                return content['roles_categories']
-            else:
-                return None    
-    
-    def update_assignable_roles(self, roles):
-        if roles is not None:
-            with open('roles/roles_const.json', 'r+', encoding='utf-8') as f:
-                content = json.load(f)              
-                content['role_emojis'] = roles
-                f.seek(0)
-                json.dump(content, f, indent=4, ensure_ascii=False)
-                f.truncate()
-            self.roles = roles
+        try:
+            conn = psycopg2.connect(host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password)
 
-    def update_roles_categories(self, roles_categories):
-        if roles_categories is not None:
-            with open('roles/roles_const.json', 'r+', encoding='utf-8') as f:
-                content = json.load(f)              
-                content['roles_categories'] = roles_categories
-                f.seek(0)
-                json.dump(content, f, indent=4, ensure_ascii=False)
-                f.truncate()
-            self.role_categories = roles_categories
+            cur = conn.cursor()
+
+            cur.execute('SELECT name, roles, message_id FROM role_categories')
+            query = cur.fetchall()
+            res = {}
+            for r in query:
+                res[r[0]] = {"name": r[0], "roles": r[1], "message_id": r[2]}
+
+        except (Exception, psycopg2.DatabaseError) as error:
+                print(error)
+                res = None
+        finally:
+            if conn is not None:
+                conn.close()
+                print('Database connection closed.')
+            return res
+        # with open('roles/roles_const.json', 'r', encoding='utf-8') as f:
+        #     content = json.load(f)
+        #     if 'roles_categories' in content:
+        #         return content['roles_categories']
+        #     else:
+        #         return None    
+    
+    def update_role(self, role):
+        try:
+            conn = psycopg2.connect(host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password)
+
+            cur = conn.cursor()
+
+            emoji = f"\'{role['emoji']}\'" or "NULL"
+            category = f"\'{role['category']}\'" or "NULL"
+            channels = f"\'{{{', '.join(str(r) for r in role['channels'])}}}\'" if role['channels'] else "NULL"
+            assignable = f"\'{role['assignable']}\'"
+
+            sgl_qt = '\''
+            description = f"\'{role['description'].replace(sgl_qt, sgl_qt + sgl_qt)}\'" or "NULL"
+
+            update_query=f"UPDATE roles SET emoji={emoji}, category={category}, channels={channels}, assignable={assignable}, description={description} WHERE name=\'{role['name']}\'"
+            cur.execute(update_query)
+            conn.commit()      
+        except (Exception, psycopg2.DatabaseError) as error:
+                print(error)
+        finally:
+            if conn is not None:
+                conn.close()
+                print('Database connection closed.')
+
+    def create_role(self, role):
+        try:
+            conn = psycopg2.connect(host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password)
+
+            cur = conn.cursor()
+
+            emoji = f"\'{role['emoji']}\'" or "NULL"
+            category = f"\'{role['category']}\'" or "NULL"
+            channels = f"\'{{{', '.join(str(r) for r in role['channels'])}}}\'" if role['channels'] else "NULL"
+            assignable = f"\'{role['assignable']}\'"
+
+            sgl_qt = '\''
+            description = f"\'{role['description'].replace(sgl_qt, sgl_qt + sgl_qt)}\'" or "NULL"
+
+            insert_query=f"INSERT INTO roles (name, emoji, category, channels, assignable, description) VALUE(\'{role['name']}\', {emoji}, {category}, {channels}, {assignable}, {description})"
+            cur.execute(insert_query)
+            conn.commit()      
+        except (Exception, psycopg2.DatabaseError) as error:
+                print(error)
+        finally:
+            if conn is not None:
+                conn.close()
+                print('Database connection closed.')
+
+    def delete_role(self, role):
+        try:
+            conn = psycopg2.connect(host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password)
+
+            cur = conn.cursor()
+
+            insert_query=f"DELETE FROM roles WHERE name = {role['name']}"
+            cur.execute(insert_query)
+            conn.commit()      
+        except (Exception, psycopg2.DatabaseError) as error:
+                print(error)
+        finally:
+            if conn is not None:
+                conn.close()
+                print('Database connection closed.')
+
+    def update_category(self, category):
+        try:
+            conn = psycopg2.connect(host=self.host,
+            database=self.database,
+            user=self.user,
+            password=self.password)
+
+            cur = conn.cursor()
+
+            message_id = f"\'{category['message_id']}\'" or "NULL"
+            roles = f"\'{{{', '.join(str(r) for r in category['roles'])}}}\'" if category['roles'] else "NULL"
+
+            update_query=f"UPDATE role_categories SET message_id={message_id}, roles={roles} WHERE name=\'{category['name']}\'"
+            cur.execute(update_query)
+            conn.commit()      
+        except (Exception, psycopg2.DatabaseError) as error:
+                print(error)
+        finally:
+            if conn is not None:
+                conn.close()
+                print('Database connection closed.')
 
 
     async def role_list(self, guild: discord.Guild):
@@ -129,7 +263,7 @@ class roles(commands.Cog, name="Roles"):
         role_emojis = self.roles
         _message = message
         if _message is None:
-            _message: discord.Message = await channel.fetch_message(category["messageId"])
+            _message: discord.Message = await channel.fetch_message(category["message_id"])
         
         emoji_list = []
         for role in category["roles"]:
@@ -221,14 +355,14 @@ class roles(commands.Cog, name="Roles"):
 
         if category_name in self.role_categories:
 
-            old_message_id = self.role_categories[category_name]["messageId"]
+            old_message_id = self.role_categories[category_name]["message_id"]
             if old_message_id == message_id:
                 return
 
-            self.role_categories[category_name]["messageId"] = message_id
+            self.role_categories[category_name]["message_id"] = message_id
             category = self.role_categories[category_name]
             
-            self.update_roles_categories(self.role_categories)
+            self.update_category(self.role_categories[category_name])
             # channel can be None because we provide the message directly, so channel wont be used
             await self.set_role_message_reactions(None, category, message=role_message, clearReactions=True)
 
@@ -273,8 +407,9 @@ class roles(commands.Cog, name="Roles"):
             old_emoji = self.roles[role_name]["emoji"]
 
             self.roles[role_name]["emoji"] = str(emoji)
-            self.update_assignable_roles(self.roles)
-           
+            self.update_role(self.roles[role_name])
+
+
             roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
             category_name = self.roles[role_name]["category"]
             category = self.role_categories[category_name]
@@ -288,22 +423,22 @@ class roles(commands.Cog, name="Roles"):
                 print("can't edit someone else's message")
         else:
             self.roles[role_name] = {
+                "name": role_name,
                 "emoji": emoji,
                 "assignable": True,
                 "category": category,
                 "channels": [],
                 "description": "League but everyone is OP so is balanced"
             }
-            self.update_assignable_roles(self.roles)
+            # TODO: ADD RECORD< NOT UPDATE
+            self.create_role(self.roles[role_name])
             if category:
                 self.role_categories[category]["roles"].append(role_name)
-                self.update_roles_categories(self.role_categories)
+                self.update_category(self.role_categories[category_name])
                 m = await self.set_role_message_reactions(channel=roles_channel, category=category, clearReactions=True)
 
 
         await ctx.message.add_reaction('✅')
-
-
 
 
     # TODO 1.Change emoji command => update .json and edit role message too. -- DONE (editing msg content partially)
@@ -336,8 +471,8 @@ class roles(commands.Cog, name="Roles"):
 
             self.roles[role_name]["category"] = category
             self.role_categories[category]["roles"].append(role_name)
-            self.update_assignable_roles(self.roles)
-            self.update_roles_categories(self.role_categories)
+            self.update_role(self.roles[role_name])
+            self.update_category(self.role_categories[category])
 
             roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
             if old_category:
@@ -346,6 +481,14 @@ class roles(commands.Cog, name="Roles"):
 
         await ctx.message.add_reaction('✅')
 
+    @commands.command(aliases=['editrole'])
+    @commands.check_any(is_mod(), commands.is_owner())
+    async def role_info(self, ctx: commands.Context, *, command):
+        """
+        
+        """
+        # process_command(command)
+        print()
     @commands.command(aliases=['roleinfo'], hidden=True)
     @commands.check_any(is_mod(), commands.is_owner())
     async def role_info(self, ctx: commands.Context, *, role_name):
@@ -371,44 +514,44 @@ class roles(commands.Cog, name="Roles"):
 
     @commands.command(aliases=['activaterole'])
     @commands.check_any(is_mod(), commands.is_owner())
-    async def set_role_active(self, ctx: commands.Context, *, role):
+    async def set_role_active(self, ctx: commands.Context, *, role_name):
         # To be redone
         """
         Sets a specific Role as assignable
         """
         
-        if role not in self.roles:
-            print(f"Role {role} couldn't be found")
+        if role_name not in self.roles:
+            print(f"Role {role_name} couldn't be found")
             return
 
         roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
 
-        self.roles[role]["assignable"] = True
-        category = self.roles[role]["category"]
+        self.roles[role_name]["assignable"] = True
+        category = self.roles[role_name]["category"]
 
-        self.update_assignable_roles(self.roles)
+        self.update_role(self.roles[role_name])
         await self.set_role_message_reactions(roles_channel, self.role_categories[category], clearReactions=True)
         await ctx.message.add_reaction('✅')
 
 
     @commands.command(aliases=['deactivaterole'])
     @commands.check_any(is_mod(), commands.is_owner())
-    async def set_role_inactive(self, ctx: commands.Context, *, role):
+    async def set_role_inactive(self, ctx: commands.Context, *, role_name):
         # To be redone
         """
         Sets a specific Role as unassignable
         """
         
-        if role not in self.roles:
-            print(f"Role {role} couldn't be found")
+        if role_name not in self.roles:
+            print(f"Role {role_name} couldn't be found")
             return
 
         roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
 
-        self.roles[role]["assignable"] = False
-        category = self.roles[role]["category"]
+        self.roles[role_name]["assignable"] = False
+        category = self.roles[role_name]["category"]
 
-        self.update_assignable_roles(self.roles)
+        self.update_role(self.roles[role_name])
         await self.set_role_message_reactions(roles_channel, self.role_categories[category], clearReactions=True)
         await ctx.message.add_reaction('✅')
 
@@ -459,8 +602,9 @@ class roles(commands.Cog, name="Roles"):
             category = roleEmoji["category"]
             roles_categories[category]["roles"] = [r for r in roles_categories[category]["roles"] if r != role.name]
                     
-            self.update_assignable_roles(assignable_roles)
-            self.update_roles_categories(roles_categories)
+            # TODO: DELETE RECORD, NOT UPDATE
+            self.delete_role(assignable_roles[role.name])
+            self.update_category(roles_categories[category])
 
             # TODO: Sync discord message using roleEmoji
 
@@ -483,8 +627,14 @@ class roles(commands.Cog, name="Roles"):
                     category = roleEmoji["category"]
                     roles_categories[category]["roles"] =  [r.replace(before.name, after.name) for r in roles_categories[category]["roles"]]
                     # message doesnt need to be edited as the role itself is mentionned (@Role) in the message, meaning it'll be updated automatically
-                    self.update_assignable_roles(assignable_roles)
-                    self.update_roles_categories(roles_categories)
+                    
+                    # TODO: DELETE RECORD, NOT UPDATE
+                    # maybe pass role object AND a role name, then only update the 
+                    # before record in the DB, changing the name to the after one
+                    self.delete_role(assignable_roles[before.name])
+
+                    self.create_role(assignable_roles[after.name])
+                    self.update_category(roles_categories)
 
                     # TODO: Sync discord message usiong roleEmojui
 
@@ -528,7 +678,7 @@ class roles(commands.Cog, name="Roles"):
         # role_channel_id = await self.get_roles_channel()        
 
         for category in self.role_categories.values():
-            if payload.message_id == category["messageId"]:
+            if payload.message_id == category["message_id"]:
                 role = next(filter(lambda x: (x[1]["emoji"] == str(payload.emoji)), role_emojis.items()), None)
                 # print(role)
                 if role and role[1]["assignable"]:
@@ -560,7 +710,7 @@ class roles(commands.Cog, name="Roles"):
 
         # role_channel_id = await self.get_roles_channel()
         for category in self.role_categories.values():
-            if payload.message_id == category["messageId"]:
+            if payload.message_id == category["message_id"]:
                 role = next(filter(lambda x: (x[1]["emoji"] == str(payload.emoji)), role_emojis.items()), None)
                 # print(role)
                 if role and role[1]["assignable"]:
