@@ -3,7 +3,6 @@ import random
 import json
 from datetime import datetime
 from discord.ext import commands, tasks
-import backgroundTasks
 
 class generalChat(commands.Cog):
     def __init__(self, bot):
@@ -42,44 +41,43 @@ class generalChat(commands.Cog):
     #Send a welcome message to general chat
     @commands.Cog.listener()
     async def on_member_join(self, member: discord.Member):
-       
         with open('config.json', 'r') as f:
             serverConfig = json.load(f)
-            generalChannel = serverConfig["welcome"]
+            welcomeChannel = serverConfig["welcome"]
             rulesChannelId = serverConfig["rules"]
             rolesChannelId = serverConfig["rolesChannelId"]
             # member.guild might just work actually
             guild: discord.Guild = self.bot.get_guild(serverConfig['guildId'])
             welcome_role = guild.get_role(serverConfig['welcomesquad'])
-        if generalChannel is not None:
-            with open("users.json", "r") as f:
-                users = json.load(f)
 
-            await backgroundTasks.update_data(users, member)
+        if welcomeChannel is not None:
+            # with open("users.json", "r") as f:
+            #     users = json.load(f)
 
-            with open("users.json", "w") as f:
-                json.dump(users, f)
+            # await backgroundTasks.update_data(users, member)
 
-            channel = guild.system_channel
+            # with open("users.json", "w") as f:
+            #     json.dump(users, f)
+
+            channel = self.bot.get_channel(welcomeChannel)
+            
             if channel is None:
-                channel = self.bot.get_channel(serverConfig["welcome"])
-
-            with open('random.json', 'r') as f:
-                randomised = json.load(f)
-                emoji1 = random.choice(randomised["emote"])
-                greeting = random.choice(randomised["greeting"]).replace("username", f'{member.mention}')
-
-            if channel is None:
-                print("Couldn't find channel with ID {} for this server! \nTrying by name #general".format(serverConfig['general']))
+                print("Couldn't find channel with ID {} for this server! \nTrying by name #welcome".format(welcomeChannel))
                 channels = self.bot.get_guild(serverConfig['guildId']).channels
                 try:
-                    channel = next(c for c in channels if c.name is "welcome")
+                    channel = next(c for c in channels if c.name == "welcome")
                 except StopIteration:
-                    print("No channel #welcome! \nNo greetings for {} :((".format(member.name))
+                    print("No channel #welcome! \nNo greetings for {} :(".format(member.name))
                 # could also take the guild id as the channel id, since the default channel of a guild has the same id as the guild
                 if channel is None:
-                    print("Couldn't find welcome channel")
+                    print("Couldn't find welcome channel at all...")
                     return
+
+            
+            with open('random.json', 'r') as f:
+                randomised = json.load(f)
+                emoji = random.choice(randomised["emote"])
+                greeting = random.choice(randomised["greeting"]).replace("username", f'{member.mention}')
 
             rolesChannel = self.bot.get_channel(rolesChannelId)
             rulesChannel = self.bot.get_channel(rulesChannelId)
@@ -87,7 +85,7 @@ class generalChat(commands.Cog):
             if member.bot:
                 await channel.send(f"A new bot has joined the server! 🤖 Welcome {member.mention} 🤖")
             else:
-                await channel.send(f"{greeting} {emoji1}\nWelcome to GMAS! Please be mindful of {rulesChannel.mention or 'the server rules'} and {rolesChannel.mention or 'the roles channel'}, and enjoy your stay!\n{welcome_role.mention}")
+                await channel.send(f"{greeting} {emoji}\nWelcome to GMAS! Please be mindful of {rulesChannel.mention or 'the server rules'} and {rolesChannel.mention or 'the roles channel'}, and enjoy your stay!\n{welcome_role.mention}")
               
             
 def setup(bot):
