@@ -454,29 +454,12 @@ class roles(commands.Cog, name="Roles"):
         role_name = args_list[0]
         emoji = temp[0]
 
-        if role_name in self.roles:
-            old_emoji = self.roles[role_name]["emoji"]
-
-            if emoji == old_emoji:
-                await ctx.message.add_reaction('✅')
+        if role_name not in self.roles:
+            if category == "":
+                print("Role doesn't exists and can't be added without category")
                 return
-
-            self.roles[role_name]["emoji"] = str(emoji)
-            self.update_role(self.roles[role_name])
-
-
-            roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
-            category_name = self.roles[role_name]["category"]
-            category = self.role_categories[category_name]
-
-            m = await self.set_role_message_reactions(channel=roles_channel, category=category, clearReactions=True)
-
-            # Updating message content
-            try:
-                await m.edit(content=m.content.replace(old_emoji, str(emoji)))
-            except:
-                print("can't edit someone else's message")
-        else:
+            if category not in self.role_categories:
+                print("Category provided doesn't exist")
             self.roles[role_name] = {
                 "name": role_name,
                 "emoji": emoji,
@@ -485,16 +468,30 @@ class roles(commands.Cog, name="Roles"):
                 "channels": [],
                 "description": ""
             }
+            self.create_role(self.roles[role_name])
+            self.role_categories[category]["roles"].append(role_name)
+            self.update_category(self.role_categories[category_name])
+            old_emoji = self.roles[role_name]["emoji"]
+        else:
+            old_emoji = self.roles[role_name]["emoji"]
+            self.roles[role_name]["emoji"] = str(emoji)
+            self.update_role(self.roles[role_name])
+            
+        roles_channel: discord.TextChannel = ctx.guild.get_channel(self.get_roles_channel())
+        category_name = self.roles[role_name]["category"]
+        category = self.role_categories[category_name]
+
+        m = await self.set_role_message_reactions(channel=roles_channel, category=category, clearReactions=True)
+
+        # Updating message content
+        try:
+            if old_emoji != emoji:
+                await m.edit(content=m.content.replace(old_emoji, str(emoji)))
+        except:
+            print("Can't edit someone else's message")
+        
             # TODO: ADD RECORD< NOT UPDATE
             
-            if category:
-                self.create_role(self.roles[role_name])
-           
-                self.role_categories[category]["roles"].append(role_name)
-                self.update_category(self.role_categories[category_name])
-                m = await self.set_role_message_reactions(channel=roles_channel, category=category, clearReactions=True)
-
-
         await ctx.message.add_reaction('✅')
 
 
