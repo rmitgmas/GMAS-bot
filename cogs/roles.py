@@ -201,6 +201,9 @@ class roles(commands.Cog, name="Roles"):
                 print('Database connection closed.')
 
     def delete_role(self, role):
+
+        
+        self.roles.pop(role.name, None)
         try:
             conn = psycopg2.connect(host=self.host,
             database=self.database,
@@ -255,8 +258,9 @@ class roles(commands.Cog, name="Roles"):
             if role.name in self.roles:
                 print(f"{role.name}")
                 role_description = self.roles[role.name]["description"]
+                role_emoji = self.roles.get(role.name, None).get("emoji", None)
                 if self.roles[role.name]["assignable"]:
-                    embed.add_field(name=role.name, value=role_description or "N/A", inline=True)
+                    embed.add_field(name=f"{role.name} - {role_emoji}", value=f"{role_description}"  or "N/A", inline=True)
         return embed
 
     async def set_role_message_reactions(self, channel: discord.TextChannel, category, clearReactions = False, message: discord.Message = None) -> discord.Message:
@@ -284,6 +288,24 @@ class roles(commands.Cog, name="Roles"):
         return _message
 
     #region Commands
+    @commands.command(aliases=['fr', 'fetchroles'], hidden=True)
+    @commands.check_any(is_mod(), commands.is_owner())
+    async def fetch_roles(self, ctx: commands.Context, id = 0):
+        """
+        refresh roles data
+        """
+        self.roles = self.get_roles()
+        self.role_categories = self.get_roles_categories()
+        await ctx.message.add_reaction('✅')
+
+    @commands.command(aliases=['deleterole'], hidden=True)
+    @commands.check_any(is_mod(), commands.is_owner())
+    async def del_role(self, ctx: commands.Context, *, role_name):
+
+        if role_name in self.roles:
+            self.delete_role(self.roles[role_name])
+            await ctx.message.add_reaction('✅')
+
     @commands.command(aliases=['src', 'setrolechannel',' setroleschannel'], hidden=True)
     @commands.check_any(is_mod(), commands.is_owner())
     async def set_roles_channel(self, ctx: commands.Context, id = 0):
@@ -383,7 +405,6 @@ class roles(commands.Cog, name="Roles"):
             
         await ctx.message.add_reaction('✅')
 
-
     @commands.command(aliases=['setemoji'], hidden=True)
     @commands.check_any(is_mod(), commands.is_owner())
     async def change_role_emoji(self, ctx: commands.Context, *, args):
@@ -403,8 +424,13 @@ class roles(commands.Cog, name="Roles"):
 
         role_name = args_list[0]
         emoji = temp[0]
+
         if role_name in self.roles:
             old_emoji = self.roles[role_name]["emoji"]
+
+            if emoji == old_emoji:
+                await ctx.message.add_reaction('✅')
+                return
 
             self.roles[role_name]["emoji"] = str(emoji)
             self.update_role(self.roles[role_name])
@@ -428,11 +454,13 @@ class roles(commands.Cog, name="Roles"):
                 "assignable": True,
                 "category": category,
                 "channels": [],
-                "description": "League but everyone is OP so is balanced"
+                "description": ""
             }
             # TODO: ADD RECORD< NOT UPDATE
-            self.create_role(self.roles[role_name])
+            
             if category:
+                self.create_role(self.roles[role_name])
+           
                 self.role_categories[category]["roles"].append(role_name)
                 self.update_category(self.role_categories[category_name])
                 m = await self.set_role_message_reactions(channel=roles_channel, category=category, clearReactions=True)
@@ -602,7 +630,7 @@ class roles(commands.Cog, name="Roles"):
 
             category = roleEmoji["category"]
             roles_categories[category]["roles"] = [r for r in roles_categories[category]["roles"] if r != role.name]
-                    
+
             # TODO: DELETE RECORD, NOT UPDATE
             self.delete_role(assignable_roles[role.name])
             self.update_category(roles_categories[category])
