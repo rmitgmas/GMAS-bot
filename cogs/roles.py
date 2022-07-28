@@ -164,6 +164,7 @@ class roles(commands.Cog, name="Roles"):
             description = f"\'{role['description'].replace(sgl_qt, sgl_qt + sgl_qt)}\'" or "NULL"
 
             update_query=f"UPDATE roles SET emoji={emoji}, category={category}, channels={channels}, assignable={assignable}, description={description} WHERE name=\'{role['name']}\'"
+            print(update_query)
             cur.execute(update_query)
             conn.commit()      
         except (Exception, psycopg2.DatabaseError) as error:
@@ -191,6 +192,7 @@ class roles(commands.Cog, name="Roles"):
             description = f"\'{role['description'].replace(sgl_qt, sgl_qt + sgl_qt)}\'" or "NULL"
 
             insert_query=f"INSERT INTO roles (name, emoji, category, channels, assignable, description) VALUE(\'{role['name']}\', {emoji}, {category}, {channels}, {assignable}, {description})"
+            print(insert_query)
             cur.execute(insert_query)
             conn.commit()      
         except (Exception, psycopg2.DatabaseError) as error:
@@ -202,8 +204,7 @@ class roles(commands.Cog, name="Roles"):
 
     def delete_role(self, role):
 
-        
-        self.roles.pop(role.name, None)
+        self.roles.pop(role['name'], None)
         try:
             conn = psycopg2.connect(host=self.host,
             database=self.database,
@@ -304,6 +305,34 @@ class roles(commands.Cog, name="Roles"):
 
         if role_name in self.roles:
             self.delete_role(self.roles[role_name])
+            await ctx.message.add_reaction('✅')
+    
+    @commands.command(aliases=['addrole'], hidden=True)
+    @commands.check_any(is_mod(), commands.is_owner())
+    async def add_role(self, ctx: commands.Context, *, args):
+        args_list = args.split('=')
+        if(len(args_list) < 2):
+            return
+
+        temp = args_list[1].split(" ")
+        category = ""
+        if len(temp) > 1:
+            if temp[1].lower() in self.role_categories:
+                category = temp[1].lower()
+
+        role_name = args_list[0]
+        emoji = temp[0]
+
+        role = {
+                "name": role_name,
+                "emoji": emoji,
+                "assignable": True,
+                "category": category,
+                "channels": [],
+                "description": ""
+            }
+        if role_name in self.roles:
+            self.create_role(role)
             await ctx.message.add_reaction('✅')
 
     @commands.command(aliases=['src', 'setrolechannel',' setroleschannel'], hidden=True)
