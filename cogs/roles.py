@@ -191,7 +191,7 @@ class roles(commands.Cog, name="Roles"):
             sgl_qt = '\''
             description = f"\'{role['description'].replace(sgl_qt, sgl_qt + sgl_qt)}\'" or "NULL"
 
-            insert_query=f"INSERT INTO roles (name, emoji, category, channels, assignable, description) VALUE(\'{role['name']}\', {emoji}, {category}, {channels}, {assignable}, {description})"
+            insert_query=f"INSERT INTO roles (name, emoji, category, channels, assignable, description) VALUES (\'{role['name']}\', {emoji}, {category}, {channels}, {assignable}, {description})"
             print(insert_query)
             cur.execute(insert_query)
             conn.commit()      
