@@ -1,5 +1,5 @@
 discord.py==1.7.3
-requests==2.23.0
+requests==2.31.0
 pytz==2020.1
 beautifulsoup4==4.9.1
 discord==1.7.3
